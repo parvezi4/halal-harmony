@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  role           UserRole  @default(MEMBER)
+  emailVerified  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  profile        Profile?
+  subscriptions  Subscription[]
+  threadsA       MessageThread[] @relation("ThreadParticipantA")
+  threadsB       MessageThread[] @relation("ThreadParticipantB")
+  messages       Message[]
+  reportsFiled   Report[]        @relation("ReportsFiledByUser")
+  reportsAgainst Report[]        @relation("ReportsAgainstUser")
+}
+
+enum UserRole {
+  MEMBER
+  ADMIN
+}
+
+model Profile {
+  id                String          @id @default(cuid())
+  userId            String          @unique
+  user              User            @relation(fields: [userId], references: [id])
+
+  alias             String
+  gender            Gender
+  dateOfBirth       DateTime?
+  ageRangeLabel     String? // e.g. "25–30" if hiding exact age
+  country           String
+  city              String?
+  region            String?
+  nationality       String?
+
+  practicingLevel   String? // e.g. "Striving", "Consistent"
+  prayerHabit       String? // e.g. "Prays 5x", "Sometimes misses"
+  hijabOrBeard      String? // generic label for modesty marker
+  madhhabOrManhaj   String?
+  smoking           Boolean? @default(false)
+
+  maritalStatus     String?
+  hasChildren       Boolean? @default(false)
+  childrenDetails   String?
+  education         String?
+  profession        String?
+  familyBackground  String?
+
+  about             String?
+  preferences       String?
+  willingToRelocate Boolean? @default(false)
+
+  waliName          String?
+  waliRelationship  String?
+  waliContact       String?
+
+  showExactAge      Boolean   @default(true)
+  showExactCity     Boolean   @default(true)
+  photosVisibleTo   PhotoVisibility @default(SUBSCRIBERS_ONLY)
+
+  status            ProfileStatus    @default(PENDING_REVIEW)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  photos            Photo[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ProfileStatus {
+  PENDING_REVIEW
+  APPROVED
+  SUSPENDED
+}
+
+enum PhotoVisibility {
+  HIDDEN
+  SUBSCRIBERS_ONLY
+  ALL_MEMBERS
+}
+
+model Photo {
+  id         String  @id @default(cuid())
+  profileId  String
+  profile    Profile @relation(fields: [profileId], references: [id])
+  url        String
+  isPrimary  Boolean @default(false)
+  isApproved Boolean @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  stripePriceId String @unique
+  durationDays Int
+  isActive    Boolean  @default(true)
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                  String            @id @default(cuid())
+  userId              String
+  user                User              @relation(fields: [userId], references: [id])
+  planId              String?
+  plan                SubscriptionPlan? @relation(fields: [planId], references: [id])
+  status              SubscriptionStatus @default(ACTIVE)
+  startDate           DateTime
+  endDate             DateTime
+  stripeCustomerId    String?
+  stripeSubscriptionId String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model MessageThread {
+  id             String   @id @default(cuid())
+  participantAId String
+  participantA   User     @relation("ThreadParticipantA", fields: [participantAId], references: [id])
+  participantBId String
+  participantB   User     @relation("ThreadParticipantB", fields: [participantBId], references: [id])
+
+  createdAt      DateTime @default(now())
+  lastMessageAt  DateTime @default(now())
+  isBlocked      Boolean  @default(false)
+
+  messages       Message[]
+}
+
+model Message {
+  id         String         @id @default(cuid())
+  threadId   String
+  thread     MessageThread  @relation(fields: [threadId], references: [id])
+  senderId   String
+  sender     User           @relation(fields: [senderId], references: [id])
+  content    String
+  createdAt  DateTime       @default(now())
+  isRead     Boolean        @default(false)
+}
+
+model Report {
+  id               String   @id @default(cuid())
+  reporterId       String
+  reporter         User     @relation("ReportsFiledByUser", fields: [reporterId], references: [id])
+  reportedUserId   String?
+  reportedUser     User?    @relation("ReportsAgainstUser", fields: [reportedUserId], references: [id])
+  messageThreadId  String?
+  messageThread    MessageThread? @relation(fields: [messageThreadId], references: [id])
+
+  reason           String
+  status           ReportStatus @default(OPEN)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
