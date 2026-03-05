@@ -147,6 +147,7 @@ model MessageThread {
   isBlocked      Boolean  @default(false)
 
   messages       Message[]
+  reports        Report[]
 }
 
 model Message {

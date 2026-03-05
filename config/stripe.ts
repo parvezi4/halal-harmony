@@ -33,7 +33,7 @@ function createStripeClient(): Stripe {
   }
 
   return new Stripe(secretKey, {
-    apiVersion: "2025-01-27.acacia", // use latest stable at implementation time
+    apiVersion: "2024-06-20", // stable version compatible with Stripe SDK v16
   });
 }
 

@@ -1,17 +1,15 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
-import { auth } from "@/auth";
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import type { ReactNode } from 'react';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/auth';
+import LogoutButton from './LogoutButton';
 
-export default async function MemberLayout({
-  children
-}: {
-  children: ReactNode;
-}) {
-  const session = await auth();
+export default async function MemberLayout({ children }: { children: ReactNode }) {
+  const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/auth/login");
+    redirect('/auth/login');
   }
 
   return (
@@ -22,44 +20,29 @@ export default async function MemberLayout({
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-xs font-bold text-slate-950">
               HH
             </div>
-            <span className="text-sm font-semibold tracking-tight">
-              Halal Harmony
-            </span>
+            <span className="text-sm font-semibold tracking-tight">Halal Harmony</span>
           </Link>
           <nav className="flex items-center gap-4 text-xs sm:text-sm">
-            <Link
-              href="/dashboard"
-              className="text-slate-200 hover:text-accent-200"
-            >
+            <Link href="/dashboard" className="text-slate-200 hover:text-accent-200">
               Home
             </Link>
-            <Link
-              href="/search"
-              className="text-slate-200 hover:text-accent-200"
-            >
+            <Link href="/search" className="text-slate-200 hover:text-accent-200">
               Search
             </Link>
-            <Link
-              href="/messages"
-              className="text-slate-200 hover:text-accent-200"
-            >
+            <Link href="/messages" className="text-slate-200 hover:text-accent-200">
               Messages
             </Link>
-            <Link
-              href="/profile"
-              className="text-slate-200 hover:text-accent-200"
-            >
+            <Link href="/profile" className="text-slate-200 hover:text-accent-200">
               Profile
             </Link>
+            <div className="ml-2 border-l border-slate-700" />
+            <LogoutButton />
           </nav>
         </div>
       </header>
       <main className="flex-1 bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-          {children}
-        </div>
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">{children}</div>
       </main>
     </div>
   );
 }
-
