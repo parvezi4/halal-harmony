@@ -2,11 +2,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { getServerSession } from 'next-auth/next';
+import type { Session } from 'next-auth';
 import { authOptions } from '@/auth';
 import LogoutButton from './LogoutButton';
 
 export default async function MemberLayout({ children }: { children: ReactNode }) {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as (Session & { user: { id: string; role: string } }) | null;
 
   if (!session?.user) {
     redirect('/auth/login');

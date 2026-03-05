@@ -27,8 +27,9 @@ export default function RegisterPage() {
         throw new Error(data.error ?? "Unable to register");
       }
       router.push("/auth/login?registered=1");
-    } catch (err: any) {
-      setError(err.message ?? "Something went wrong");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
