@@ -35,36 +35,55 @@ model Profile {
   userId            String          @unique
   user              User            @relation(fields: [userId], references: [id])
 
-  alias             String
+  // Onboarding completion tracking
+  onboardingCompletedAt DateTime?
+
+  // Step 1: Basic Info (Mandatory)
+  fullName          String?
+  alias             String?
   gender            Gender
   dateOfBirth       DateTime?
   ageRangeLabel     String? // e.g. "25–30" if hiding exact age
-  country           String
+  country           String?
   city              String?
   region            String?
   nationality       String?
+  ethnicity         String?
 
-  practicingLevel   String? // e.g. "Striving", "Consistent"
-  prayerHabit       String? // e.g. "Prays 5x", "Sometimes misses"
-  hijabOrBeard      String? // generic label for modesty marker
-  madhhabOrManhaj   String?
+  // Step 2: Islamic Details (Mandatory)
+  practicingLevel   String? // e.g. "Very practicing", "Practicing", "Moderate", etc.
+  prayerHabit       String? // e.g. "5 times daily", "Regularly", "Sometimes", "Rarely", "Never"
+  height            String? // e.g. "175cm" or height in cm
+  weight            Int? // weight in kg
+  bodyShape         String? // e.g. "Athletic", "Average", "Curvy", "Muscular", "Plus-size"
+  hijabOrBeard      String? // for females: "Niqab", "Hijab", "Headscarf"; for males: "Full beard", "Trimmed", "Clean shaven"
+  madhhabOrManhaj   String? // Hanafi, Maliki, Shafi'i, Hanbali
   smoking           Boolean? @default(false)
 
-  maritalStatus     String?
-  hasChildren       Boolean? @default(false)
-  childrenDetails   String?
-  education         String?
-  profession        String?
-  familyBackground  String?
+  // Step 3: Marital & Family (Mandatory)
+  maritalStatus     String? // Female: "virgin", "divorced", "annulled"; Male: "virgin", "married", "separated"
+  numberOfChildren  Int? @default(0)
+  childrenLivingWithMe Int?
+  willingToRelocate String? // "yes", "maybe", "no"
+  relocateNotes     String?
 
-  about             String?
-  preferences       String?
-  willingToRelocate Boolean? @default(false)
+  // Step 4: Preferences (Mandatory)
+  spouseStatusPreferences String? // JSON array of acceptable statuses for spouse, e.g. ["virgin", "divorced"]
 
+  // Step 5: Wali Info (Mandatory for females, N/A for males)
   waliName          String?
   waliRelationship  String?
-  waliContact       String?
+  waliEmail         String?
+  waliPhone         String?
 
+  // Additional profile fields (optional, can be filled later)
+  about             String?
+  familyBackground  String?
+  education         String?
+  profession        String?
+  preferences       String?
+
+  // Privacy & visibility
   showExactAge      Boolean   @default(true)
   showExactCity     Boolean   @default(true)
   photosVisibleTo   PhotoVisibility @default(SUBSCRIBERS_ONLY)
@@ -98,8 +117,11 @@ model Photo {
   profileId  String
   profile    Profile @relation(fields: [profileId], references: [id])
   url        String
+  mimeType   String
+  fileSizeBytes Int
   isPrimary  Boolean @default(false)
   isApproved Boolean @default(false)
+  isBlurred  Boolean @default(true)
   createdAt  DateTime @default(now())
 }
 

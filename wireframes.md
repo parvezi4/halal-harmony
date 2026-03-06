@@ -273,8 +273,68 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 
 ---
 
+### 6. Onboarding Wizard (Single Route: `/onboarding`)
+
+- **Goals**
+  - Collect mandatory profile data before member features are unlocked.
+  - Save each step asynchronously so users can resume later.
+  - Enforce gender-specific rules (female cannot be married; female wali required).
+
+```text
+---------------------------------------------------------
+| Logo                          Step 3 of 5   [Save&Exit]|
+---------------------------------------------------------
+| Progress: [██████████░░░░░░]                          |
+---------------------------------------------------------
+| Step content card                                      |
+| - Step 1: Basic info (name, gender, DOB>=14, location)|
+| - Step 2: Islamic details                              |
+| - Step 3: Marital + family                             |
+| - Step 4: Spouse status preferences                    |
+| - Step 5: Wali info (female) / summary (male)         |
+---------------------------------------------------------
+| Validation messages (blocking):                        |
+| - Female + married => cannot proceed                   |
+| - Age < 14 => cannot proceed                           |
+| - Female missing wali => cannot complete               |
+---------------------------------------------------------
+| [Back]                                  [Save&Continue]|
+---------------------------------------------------------
+```
+
+---
+
+### 7. Post-Onboarding Photo Upload (`/onboarding/photo`)
+
+- **Goals**
+  - Encourage photo upload after onboarding completion.
+  - Enforce hard limits and preserve privacy defaults.
+
+```text
+---------------------------------------------------------
+| Header: Upload Profile Photos                          |
+---------------------------------------------------------
+| Rules:                                                 |
+| - Max photos per profile: 5                            |
+| - Max size per photo: 2MB                              |
+| - Formats: JPG, PNG, WebP                              |
+| - New uploads are blurred by default                   |
+---------------------------------------------------------
+| [Choose files] (multi-select)                          |
+| Selected: fileA.jpg (1.2MB), fileB.webp (0.7MB)       |
+| [Upload Photos]                                        |
+---------------------------------------------------------
+| Current photos (N/5)                                   |
+| [thumb] Primary | Blurred in search | 0.8MB            |
+| [thumb] Secondary | Blurred in search | 1.1MB          |
+---------------------------------------------------------
+| [Go to Dashboard]   [Start Searching]                  |
+---------------------------------------------------------
+```
+
+---
+
 ### Notes
 
 - All layouts should be implemented as **mobile-first**, then enhanced for tablet/desktop (e.g. side-by-side columns).
 - Components like nav bar, cards, and buttons should be reused across pages for consistency.
-

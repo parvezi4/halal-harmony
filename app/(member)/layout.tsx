@@ -4,13 +4,22 @@ import type { ReactNode } from 'react';
 import { getServerSession } from 'next-auth/next';
 import type { Session } from 'next-auth';
 import { authOptions } from '@/auth';
+import { isProfileComplete } from '@/lib/auth/profileStatus';
 import LogoutButton from './LogoutButton';
 
 export default async function MemberLayout({ children }: { children: ReactNode }) {
-  const session = (await getServerSession(authOptions)) as (Session & { user: { id: string; role: string } }) | null;
+  const session = (await getServerSession(authOptions)) as
+    | (Session & { user: { id: string; role: string } })
+    | null;
 
   if (!session?.user) {
     redirect('/auth/login');
+  }
+
+  // Check if profile is complete; if not, redirect to onboarding
+  const profileComplete = await isProfileComplete(session.user.id);
+  if (!profileComplete) {
+    redirect('/onboarding');
   }
 
   return (

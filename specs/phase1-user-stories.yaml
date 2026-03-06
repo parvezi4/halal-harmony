@@ -1,243 +1,247 @@
 phase: 1
-name: "Core foundation: auth, onboarding, profile, basic search"
-last_updated: "2026-03-03"
+name: 'Core foundation: auth, onboarding, profile, basic search'
+last_updated: '2026-03-03'
 
 epics:
   - id: auth
-    name: "Authentication & account access"
+    name: 'Authentication & account access'
     stories:
       - id: auth-register
-        title: "User registration with email and password"
-        role: "guest"
-        goal: "create an account with my email and password"
-        reason: "so that I can start using the service and build my matrimonial profile"
+        title: 'User registration with email and password'
+        role: 'guest'
+        goal: 'create an account with my email and password'
+        reason: 'so that I can start using the service and build my matrimonial profile'
         acceptance_criteria:
-          - "Registration form includes: email, password, confirm_password, and required terms/privacy consent."
-          - "Email must be unique and valid; duplicate emails show a clear error with a link to login or reset password."
-          - "Password meets minimum strength rules (e.g. >= 8 chars, at least one letter and one number)."
-          - "On success, a new user is created with email, hashed password, role=member, emailVerified=false."
-          - "A verification email with a secure, time-limited link is sent to the registered address."
+          - 'Registration form includes: email, password, confirm_password, and required terms/privacy consent.'
+          - 'Email must be unique and valid; duplicate emails show a clear error with a link to login or reset password.'
+          - 'Password meets minimum strength rules (e.g. >= 8 chars, at least one letter and one number).'
+          - 'On success, a new user is created with email, hashed password, role=member, emailVerified=false.'
+          - 'A verification email with a secure, time-limited link is sent to the registered address.'
           - "User is redirected to a 'check your email' or confirmation screen after registration."
-          - "Passwords are never logged or returned in any response."
-          - "Basic rate limiting is applied to registration attempts."
+          - 'Passwords are never logged or returned in any response.'
+          - 'Basic rate limiting is applied to registration attempts.'
 
       - id: auth-verify-email
-        title: "Email verification"
-        role: "newly_registered_member"
-        goal: "verify my email address"
-        reason: "so that my account is activated and I can safely log in"
+        title: 'Email verification'
+        role: 'newly_registered_member'
+        goal: 'verify my email address'
+        reason: 'so that my account is activated and I can safely log in'
         acceptance_criteria:
-          - "Verification email contains a secure, time-limited token link."
-          - "Clicking a valid link marks emailVerified=true for the user."
-          - "After successful verification, user is redirected to login or signed in automatically (defined consistently)."
-          - "If token is invalid or expired, user sees an error and can request a new verification email."
-          - "Resend verification is rate-limited and only available for existing, unverified accounts."
-          - "Unverified users cannot access the main dashboard or onboarding wizard."
+          - 'Verification email contains a secure, time-limited token link.'
+          - 'Clicking a valid link marks emailVerified=true for the user.'
+          - 'After successful verification, user is redirected to login or signed in automatically (defined consistently).'
+          - 'If token is invalid or expired, user sees an error and can request a new verification email.'
+          - 'Resend verification is rate-limited and only available for existing, unverified accounts.'
+          - 'Unverified users cannot access the main dashboard or onboarding wizard.'
 
       - id: auth-login
-        title: "Login with email and password"
-        role: "registered_member"
-        goal: "log in using my email and password"
-        reason: "so that I can access my profile, search candidates, and manage my account"
+        title: 'Login with email and password'
+        role: 'registered_member'
+        goal: 'log in using my email and password'
+        reason: 'so that I can access my profile, search candidates, and manage my account'
         acceptance_criteria:
-          - "Login form includes email and password."
-          - "Invalid credentials show a generic error message without revealing whether email exists."
+          - 'Login form includes email and password.'
+          - 'Invalid credentials show a generic error message without revealing whether email exists.'
           - "If email exists but is unverified, user is informed and offered a 'resend verification email' option."
-          - "On success, a secure HTTP-only session cookie is created."
-          - "User is redirected to onboarding if profile is incomplete, otherwise to the member dashboard."
-          - "Login attempts are rate-limited to reduce brute-force attacks."
-          - "Logout clears the session and redirects to a public page (landing or login)."
+          - 'On success, a secure HTTP-only session cookie is created.'
+          - 'User is redirected to onboarding if profile is incomplete, otherwise to the member dashboard.'
+          - 'Login attempts are rate-limited to reduce brute-force attacks.'
+          - 'Logout clears the session and redirects to a public page (landing or login).'
 
       - id: auth-forgot-password
-        title: "Password reset via email"
-        role: "member"
-        goal: "reset my password via email"
-        reason: "so that I can regain access securely if I forget my password"
+        title: 'Password reset via email'
+        role: 'member'
+        goal: 'reset my password via email'
+        reason: 'so that I can regain access securely if I forget my password'
         acceptance_criteria:
           - "'Forgot password' link is visible on the login page."
-          - "Form accepts an email and always responds with a generic success message to avoid account enumeration."
-          - "If email exists, a secure, time-limited reset token email is sent."
-          - "Reset link opens a form with new_password and confirm_password fields."
-          - "On valid token and matching passwords, the password hash is updated and the token is invalidated."
-          - "User is either logged in automatically or redirected to login with a success message (implementation choice is documented)."
-          - "Reset tokens are single-use and expire after a configured time window."
+          - 'Form accepts an email and always responds with a generic success message to avoid account enumeration.'
+          - 'If email exists, a secure, time-limited reset token email is sent.'
+          - 'Reset link opens a form with new_password and confirm_password fields.'
+          - 'On valid token and matching passwords, the password hash is updated and the token is invalidated.'
+          - 'User is either logged in automatically or redirected to login with a success message (implementation choice is documented).'
+          - 'Reset tokens are single-use and expire after a configured time window.'
 
   - id: onboarding
-    name: "Onboarding wizard & profile creation"
+    name: 'Onboarding wizard & profile creation'
     stories:
       - id: onboarding-entry
-        title: "Redirect new users into onboarding wizard"
-        role: "new_member"
-        goal: "be guided through a multi-step onboarding wizard"
-        reason: "so that I can complete my profile in a structured, Islamic-focused way"
+        title: 'Redirect new users into onboarding wizard'
+        role: 'new_member'
+        goal: 'be guided through a multi-step onboarding wizard'
+        reason: 'so that I can complete my profile in a structured, Islamic-focused way'
         acceptance_criteria:
-          - "After first successful login (and email verification), users with incomplete profiles are redirected to the onboarding wizard."
-          - "Onboarding progress is saved per step; users can leave and resume later."
+          - 'After first successful login (and email verification), users with incomplete profiles are redirected to the onboarding wizard.'
+          - 'Onboarding progress is saved per step; users can leave and resume later.'
           - "Wizard shows a clear multi-step indicator (e.g. 'Step 2 of 5')."
-          - "Users with completed profiles go directly to the dashboard instead of the wizard."
+          - 'Users with completed profiles go directly to the dashboard instead of the wizard.'
+          - 'Users with incomplete onboarding are blocked from /dashboard, /search, and /messages until onboarding is complete.'
 
       - id: onboarding-basic-info
-        title: "Onboarding step: basic information"
-        role: "member"
-        goal: "enter my basic personal details (name/alias, gender, age, location, nationality)"
-        reason: "so that potential matches understand my background at a high level"
+        title: 'Onboarding step: basic information'
+        role: 'member'
+        goal: 'enter my basic personal details (name/alias, gender, age, location, nationality)'
+        reason: 'so that potential matches understand my background at a high level'
         acceptance_criteria:
-          - "Fields: alias/name (required), gender (required), date_of_birth or age (required), country (required), city/region (optional), nationality (optional)."
-          - "Alias/name is validated to avoid obvious contact info (emails, phone numbers, URLs)."
-          - "Age is constrained to a reasonable range (e.g. 18–80, configurable)."
-          - "Submitting the step persists data into the Profile record."
-          - "Revisiting the step pre-fills previously saved values."
+          - 'Fields: alias/name (required), gender (required), date_of_birth or age (required), country (required), city/region (optional), nationality (optional).'
+          - 'Alias/name is validated to avoid obvious contact info (emails, phone numbers, URLs).'
+          - 'Age minimum is 14 years old for both genders; users younger than 14 are rejected.'
+          - 'Submitting the step persists data into the Profile record.'
+          - 'Revisiting the step pre-fills previously saved values.'
 
       - id: onboarding-islamic-info
-        title: "Onboarding step: Islamic information"
-        role: "member"
-        goal: "describe my Islamic practice and beliefs"
-        reason: "so that others can understand my religious alignment and compatibility"
+        title: 'Onboarding step: Islamic information'
+        role: 'member'
+        goal: 'describe my Islamic practice and beliefs'
+        reason: 'so that others can understand my religious alignment and compatibility'
         acceptance_criteria:
-          - "Fields include: practicing_level, prayer_consistency, hijab_status (for sisters), beard (for brothers), optional madhhab/manhaj, and halal_relationship_expectations."
-          - "Required vs optional fields are clearly indicated."
-          - "Text fields are length-limited and checked against basic patterns to block contact info."
-          - "Submitting the step updates corresponding fields in the Profile."
-          - "Users can navigate back/forward without losing saved data."
+          - 'Fields include: practicing_level, prayer_consistency, hijab_status (for sisters), beard (for brothers), optional madhhab/manhaj, and halal_relationship_expectations.'
+          - 'Required vs optional fields are clearly indicated.'
+          - 'Text fields are length-limited and checked against basic patterns to block contact info.'
+          - 'Submitting the step updates corresponding fields in the Profile.'
+          - 'Users can navigate back/forward without losing saved data.'
 
       - id: onboarding-marital-family
-        title: "Onboarding step: marital status & family"
-        role: "member"
-        goal: "record my marital status, children, and willingness to relocate"
-        reason: "so that potential matches can quickly assess compatibility"
+        title: 'Onboarding step: marital status & family'
+        role: 'member'
+        goal: 'record my marital status, children, and willingness to relocate'
+        reason: 'so that potential matches can quickly assess compatibility'
         acceptance_criteria:
-          - "Fields: marital_status (required), number_of_children, children_living_with_me, willingness_to_relocate (yes/no/maybe with optional notes)."
-          - "Children-related fields behave logically (e.g. number_of_children=0 disables or sets children_living_with_me)."
-          - "Data is stored in the Profile model and used later by search filters."
-          - "Step can be re-opened and edited with previously saved values visible."
+          - 'Fields: marital_status (required), number_of_children, children_living_with_me, willingness_to_relocate (yes/no/maybe with optional notes).'
+          - 'Gender-specific marital status rules are enforced: female options are virgin/divorced/annulled; male options are virgin/married/separated.'
+          - 'If a female user submits married marital status, progression is blocked with a clear rejection message.'
+          - 'Children-related fields behave logically (e.g. number_of_children=0 disables or sets children_living_with_me).'
+          - 'Data is stored in the Profile model and used later by search filters.'
+          - 'Step can be re-opened and edited with previously saved values visible.'
 
       - id: onboarding-about-expectations
-        title: "Onboarding step: background, bio, and expectations"
-        role: "member"
-        goal: "describe my background and marital expectations"
-        reason: "so that others can make an informed, halal decision about compatibility"
+        title: 'Onboarding step: background, bio, and expectations'
+        role: 'member'
+        goal: 'describe my background and marital expectations'
+        reason: 'so that others can make an informed, halal decision about compatibility'
         acceptance_criteria:
-          - "Fields: about_me (required with minimum length), Islamic_background (optional), family_background, education_level, profession, marital_expectations."
-          - "Content is checked for disallowed patterns (emails, phone numbers, URLs, obvious social handles) and rejected with clear messages if found."
-          - "All fields are persisted in the Profile and are visible in public profile views, subject to privacy settings."
-          - "User can move between steps without losing already-saved content."
+          - 'Fields: about_me (required with minimum length), Islamic_background (optional), family_background, education_level, profession, marital_expectations.'
+          - 'Content is checked for disallowed patterns (emails, phone numbers, URLs, obvious social handles) and rejected with clear messages if found.'
+          - 'All fields are persisted in the Profile and are visible in public profile views, subject to privacy settings.'
+          - 'User can move between steps without losing already-saved content.'
 
       - id: onboarding-wali-photo
-        title: "Onboarding step: wali contact & photo upload"
-        role: "female_member"
-        goal: "optionally add wali/guardian contact and upload a modest profile photo"
-        reason: "so that brothers can involve my wali early and see me in a halal way"
+        title: 'Onboarding step: wali contact & photo upload'
+        role: 'female_member'
+        goal: 'optionally add wali/guardian contact and upload a modest profile photo'
+        reason: 'so that brothers can involve my wali early and see me in a halal way'
         acceptance_criteria:
-          - "For female profiles, fields are available for wali_name, wali_relationship, wali_contact (phone or email)."
-          - "Wali contact details are stored privately and never surfaced on public profiles."
-          - "Photo upload supports at least one image with type restrictions (jpg, png, webp) and a max size limit."
-          - "Photos are stored in external storage and referenced via a Photo record with isPrimary defaulting to true for the first image."
-          - "Users see short, clear modesty guidelines before uploading."
-          - "A simple privacy toggle allows controlling whether photos are visible to all logged-in members or a narrower group (e.g. subscribers)."
+          - 'For female profiles, wali_name, wali_relationship, wali_email, and wali_phone are required before onboarding can be completed.'
+          - 'Wali contact details are stored privately and never surfaced on public profiles.'
+          - 'Photo upload supports JPG, PNG, and WebP only, with max size 2MB per photo.'
+          - 'A profile can store at most 5 photos total. Uploads beyond this limit are blocked.'
+          - 'Photos are stored in external storage and referenced via a Photo record with isPrimary defaulting to true for the first image.'
+          - 'Uploaded photos are blurred by default in search/profile previews until mutual photo-exchange approval.'
+          - 'Users see short, clear modesty guidelines before uploading.'
+          - 'A simple privacy toggle allows controlling whether photos are visible to all logged-in members or a narrower group (e.g. subscribers).'
 
       - id: profile-completeness-status
-        title: "Profile completeness indicator and status"
-        role: "member"
-        goal: "see how complete my profile is and whether it is ready for others to view"
-        reason: "so that I am motivated to fill key information and know if my profile is active"
+        title: 'Profile completeness indicator and status'
+        role: 'member'
+        goal: 'see how complete my profile is and whether it is ready for others to view'
+        reason: 'so that I am motivated to fill key information and know if my profile is active'
         acceptance_criteria:
-          - "A completeness indicator (percentage or tier) is shown on the dashboard."
-          - "Completeness is calculated based on key fields across onboarding steps (basic info, Islamic info, marital/family, about/expectations, at least one preference)."
-          - "Profile has statuses: pending_review, approved, suspended (even if moderation tools are minimal in Phase 1)."
-          - "New profiles default to a clearly defined initial status (documented in the implementation)."
-          - "Only approved and sufficiently complete profiles appear in search results."
+          - 'A completeness indicator (percentage or tier) is shown on the dashboard.'
+          - 'Completeness is calculated based on key fields across onboarding steps (basic info, Islamic info, marital/family, about/expectations, at least one preference).'
+          - 'Profile has statuses: pending_review, approved, suspended (even if moderation tools are minimal in Phase 1).'
+          - 'New profiles default to a clearly defined initial status (documented in the implementation).'
+          - 'Only approved and sufficiently complete profiles appear in search results.'
 
   - id: profile-view
-    name: "Profile viewing"
+    name: 'Profile viewing'
     stories:
       - id: profile-public-view
-        title: "Public profile view for opposite gender"
-        role: "member"
-        goal: "view the profile of a potential opposite-gender match"
-        reason: "so that I can assess Islamic alignment and compatibility before engaging further"
+        title: 'Public profile view for opposite gender'
+        role: 'member'
+        goal: 'view the profile of a potential opposite-gender match'
+        reason: 'so that I can assess Islamic alignment and compatibility before engaging further'
         acceptance_criteria:
-          - "Only logged-in members can view other member profiles; guests see only marketing/landing pages."
-          - "Members can only view profiles of the opposite gender in Phase 1."
-          - "Profile view displays alias, age or age_range (respecting privacy), location (city+country or country/region), practicing_level, prayer, hijab/beard, marital_status, children summary, about_me, family_background, education_level, profession, and marital_expectations."
-          - "If user has chosen to hide exact age, an age range is shown instead."
-          - "If user has chosen to hide city, only country/region is shown."
-          - "Photos follow privacy rules and may be hidden or blurred for certain users (e.g. guests or free members)."
-          - "No emails, phone numbers, or social handles appear anywhere in the profile view."
+          - 'Only logged-in members can view other member profiles; guests see only marketing/landing pages.'
+          - 'Members can only view profiles of the opposite gender in Phase 1.'
+          - 'Profile view displays alias, age or age_range (respecting privacy), location (city+country or country/region), practicing_level, prayer, hijab/beard, marital_status, children summary, about_me, family_background, education_level, profession, and marital_expectations.'
+          - 'If user has chosen to hide exact age, an age range is shown instead.'
+          - 'If user has chosen to hide city, only country/region is shown.'
+          - 'Photos follow privacy rules and may be hidden or blurred for certain users (e.g. guests or free members).'
+          - 'No emails, phone numbers, or social handles appear anywhere in the profile view.'
 
   - id: search
-    name: "Basic search & discovery"
+    name: 'Basic search & discovery'
     stories:
       - id: search-basic-filters
-        title: "Search opposite-gender profiles with basic filters"
-        role: "member"
-        goal: "search for opposite-gender profiles using simple filters"
-        reason: "so that I can find candidates who broadly match my criteria"
+        title: 'Search opposite-gender profiles with basic filters'
+        role: 'member'
+        goal: 'search for opposite-gender profiles using simple filters'
+        reason: 'so that I can find candidates who broadly match my criteria'
         acceptance_criteria:
-          - "Search page is accessible only to logged-in members."
-          - "Results include only approved, sufficiently complete profiles of the opposite gender."
-          - "Filters include: age_range, country, optional city/region, marital_status, practicing_level, and basic Islamic markers (e.g. hijab/beard)."
-          - "On first visit, users either see sensible default results or are prompted to apply filters."
-          - "Result queries are paginated at the data layer; the system never loads all profiles at once."
-          - "Results are sorted using a simple, documented rule (e.g. most recent activity or newest profiles)."
+          - 'Search page is accessible only to logged-in members.'
+          - 'Results include only approved, sufficiently complete profiles of the opposite gender.'
+          - 'Filters include: age_range, country, optional city/region, marital_status, practicing_level, and basic Islamic markers (e.g. hijab/beard).'
+          - 'On first visit, users either see sensible default results or are prompted to apply filters.'
+          - 'Result queries are paginated at the data layer; the system never loads all profiles at once.'
+          - 'Results are sorted using a simple, documented rule (e.g. most recent activity or newest profiles).'
 
       - id: search-results-list
-        title: "Search results list view"
-        role: "member"
-        goal: "see a paginated list of matching profiles with key summary info"
-        reason: "so that I can quickly scan for potential matches"
+        title: 'Search results list view'
+        role: 'member'
+        goal: 'see a paginated list of matching profiles with key summary info'
+        reason: 'so that I can quickly scan for potential matches'
         acceptance_criteria:
-          - "Each search result card shows thumbnail/avatar, alias, age or age_range, location summary, and 1–2 key Islamic markers."
-          - "Clicking a card opens the full profile view."
+          - 'Each search result card shows thumbnail/avatar, alias, age or age_range, location summary, and 1–2 key Islamic markers.'
+          - 'Clicking a card opens the full profile view.'
           - "Pagination or 'load more' controls allow navigating through results (fixed page size)."
-          - "When there are no matches, an empty state explains this and suggests widening filters."
-          - "Rendering remains performant even with many total profiles due to proper pagination."
+          - 'When there are no matches, an empty state explains this and suggests widening filters.'
+          - 'Rendering remains performant even with many total profiles due to proper pagination.'
 
       - id: search-saved-filters
-        title: "Save and re-run search filters"
-        role: "member"
-        goal: "save commonly used search filters"
-        reason: "so that I can quickly re-run my preferred criteria without re-entering them"
+        title: 'Save and re-run search filters'
+        role: 'member'
+        goal: 'save commonly used search filters'
+        reason: 'so that I can quickly re-run my preferred criteria without re-entering them'
         acceptance_criteria:
-          - "After applying filters, user can save the current search with an optional name."
-          - "Saved searches store key filters (age_range, location, marital_status, main Islamic filters)."
-          - "User can view a list of their saved searches and re-run them with one click."
-          - "Users can delete saved searches; editing is optional in Phase 1."
-          - "A reasonable per-user limit on number of saved searches is enforced."
+          - 'After applying filters, user can save the current search with an optional name.'
+          - 'Saved searches store key filters (age_range, location, marital_status, main Islamic filters).'
+          - 'User can view a list of their saved searches and re-run them with one click.'
+          - 'Users can delete saved searches; editing is optional in Phase 1.'
+          - 'A reasonable per-user limit on number of saved searches is enforced.'
 
       - id: search-shortlist
-        title: "Shortlist / favourites"
-        role: "member"
-        goal: "add interesting profiles to a private shortlist"
-        reason: "so that I can easily revisit them later"
+        title: 'Shortlist / favourites'
+        role: 'member'
+        goal: 'add interesting profiles to a private shortlist'
+        reason: 'so that I can easily revisit them later'
         acceptance_criteria:
           - "From search results and profile views, users can toggle a 'favourite' or 'shortlist' action."
-          - "Shortlisted profiles are stored per user and persisted in the database."
-          - "A favourites page or section lets users view all shortlisted profiles in a similar card layout to search results."
-          - "Removing a profile from favourites updates both the favourites view and any indicator on cards."
-          - "Shortlisting is private in Phase 1; the other user is not notified."
+          - 'Shortlisted profiles are stored per user and persisted in the database.'
+          - 'A favourites page or section lets users view all shortlisted profiles in a similar card layout to search results.'
+          - 'Removing a profile from favourites updates both the favourites view and any indicator on cards.'
+          - 'Shortlisting is private in Phase 1; the other user is not notified.'
 
       - id: access-gating-free
-        title: "Basic free vs paid access hints (pre-subscription)"
-        role: "free_member"
-        goal: "understand my viewing limits and see upgrade prompts"
-        reason: "so that I know what’s available now and what I gain by upgrading"
+        title: 'Basic free vs paid access hints (pre-subscription)'
+        role: 'free_member'
+        goal: 'understand my viewing limits and see upgrade prompts'
+        reason: 'so that I know what’s available now and what I gain by upgrading'
         acceptance_criteria:
-          - "System enforces a configurable limit on some aspect of free usage (e.g. daily profile views or detailed profile opens)."
+          - 'System enforces a configurable limit on some aspect of free usage (e.g. daily profile views or detailed profile opens).'
           - "When a free user hits the limit, a clear, non-buggy message explains the restriction and points to an 'Upgrade' or 'Plans' page."
-          - "Upgrade/Plans page can exist as a placeholder before full Stripe integration."
-          - "Basic counters or flags are implemented in the data model to support future, more robust subscription gating."
+          - 'Upgrade/Plans page can exist as a placeholder before full Stripe integration.'
+          - 'Basic counters or flags are implemented in the data model to support future, more robust subscription gating.'
 
   - id: dashboard
-    name: "Member dashboard"
+    name: 'Member dashboard'
     stories:
       - id: dashboard-basic
-        title: "Basic member dashboard"
-        role: "logged_in_member"
-        goal: "land on a simple dashboard with my status and key actions"
-        reason: "so that I can immediately continue my journey (complete profile, search, view favourites)"
+        title: 'Basic member dashboard'
+        role: 'logged_in_member'
+        goal: 'land on a simple dashboard with my status and key actions'
+        reason: 'so that I can immediately continue my journey (complete profile, search, view favourites)'
         acceptance_criteria:
-          - "After login, users with incomplete profiles are redirected to onboarding; complete profiles go to the dashboard."
+          - 'After login, users with incomplete profiles are redirected to onboarding; complete profiles go to the dashboard.'
           - "Dashboard shows a greeting with alias/name, profile completeness indicator, and a clear CTA to 'Complete profile' or 'Edit profile'."
           - "Dashboard includes quick links to: search, favourites/shortlist, and a basic 'Subscription status' area (e.g. 'Free member')."
-          - "Layout is mobile-first and responsive for small screens in Phase 1."
-
+          - 'Layout is mobile-first and responsive for small screens in Phase 1.'

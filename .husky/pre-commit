@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -e
+
+# VS Code/Git hook shells on Windows may not include NVM's Node path.
+if ! command -v npm >/dev/null 2>&1; then
+	if [ -s "$HOME/.nvm/nvm.sh" ]; then
+		. "$HOME/.nvm/nvm.sh"
+		nvm use --silent >/dev/null 2>&1 || true
+	fi
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+	echo "husky pre-commit: npm not found in PATH"
+	echo "Install Node.js or ensure your Node/NPM bin directory is on PATH for Git hooks."
+	exit 127
+fi
+
+npm test
