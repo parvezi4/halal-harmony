@@ -10,6 +10,19 @@ node_modules/
 .next/
 out/
 dist/
+*.tsbuildinfo
+.vercel/
+.turbo/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Tool caches
+.eslintcache
+
+# Temp files
+*.tmp
 
 # IDE
 .vscode/
