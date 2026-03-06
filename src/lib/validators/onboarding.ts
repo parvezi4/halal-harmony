@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  * Regex patterns for validation
  */
-const NO_CONTACT_INFO_PATTERN = /[@#$%^&*()_+=\[\]{};':"\\|,.<>?\n\t/]/;
+const NO_CONTACT_INFO_PATTERN = /[@#$%^&*()_+=[\]{};':"\\|,.<>?\n\t/]/;
 const PHONE_PATTERN = /^\+?[\d\s\-()]{7,}$/;
 
 function flattenFieldErrors(

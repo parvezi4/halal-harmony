@@ -4,8 +4,10 @@ import { FormEvent, useState } from 'react';
 import type { OnboardingStep3FormData } from '@/lib/validators/onboarding';
 
 interface Step3MaritalFamilyProps {
-  onData: (data: OnboardingStep3FormData) => void;
-  onSaveAndContinue: (data: OnboardingStep3FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onData: (_data: OnboardingStep3FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onSaveAndContinue: (_data: OnboardingStep3FormData) => void;
   loading: boolean;
   gender: 'MALE' | 'FEMALE';
   fieldErrors: Record<string, string>;

@@ -4,8 +4,10 @@ import { FormEvent, useState } from 'react';
 import type { OnboardingStep1FormData } from '@/lib/validators/onboarding';
 
 interface Step1BasicInfoProps {
-  onData: (data: OnboardingStep1FormData) => void;
-  onSaveAndContinue: (data: OnboardingStep1FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onData: (_data: OnboardingStep1FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onSaveAndContinue: (_data: OnboardingStep1FormData) => void;
   loading: boolean;
   fieldErrors: Record<string, string>;
   initialData?: Partial<OnboardingStep1FormData>;

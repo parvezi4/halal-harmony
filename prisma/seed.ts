@@ -169,7 +169,7 @@ async function main() {
     },
   });
 
-  const user3 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'ali@example.com',
       passwordHash,
@@ -218,7 +218,7 @@ async function main() {
   });
 
   // User 4: Incomplete female profile (for testing female wizard with Step 5 - Wali info)
-  const user4 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'aisha@example.com',
       passwordHash,
@@ -270,7 +270,7 @@ async function main() {
   });
 
   // User 5: Incomplete onboarding (for testing wizard flow)
-  const user5 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'yusuf@example.com',
       passwordHash,
@@ -299,7 +299,7 @@ async function main() {
   });
 
   // User 6: Female with annulled status and max photos
-  const user6 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'zainab@example.com',
       passwordHash,
@@ -372,7 +372,7 @@ async function main() {
   fourteenYearsAgo.setMonth(0); // January
   fourteenYearsAgo.setDate(1);
 
-  const user7 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'sara@example.com',
       passwordHash,

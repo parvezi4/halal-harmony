@@ -4,8 +4,10 @@ import { FormEvent, useState } from 'react';
 import type { OnboardingStep4FormData } from '@/lib/validators/onboarding';
 
 interface Step4PreferencesProps {
-  onData: (data: OnboardingStep4FormData) => void;
-  onSaveAndContinue: (data: OnboardingStep4FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onData: (_data: OnboardingStep4FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onSaveAndContinue: (_data: OnboardingStep4FormData) => void;
   loading: boolean;
   gender: 'MALE' | 'FEMALE';
   fieldErrors: Record<string, string>;

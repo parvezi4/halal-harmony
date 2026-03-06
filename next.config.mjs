@@ -3,7 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     reactCompiler: true
-  }
+  },
+  dir: './src'
 };
 
 export default nextConfig;

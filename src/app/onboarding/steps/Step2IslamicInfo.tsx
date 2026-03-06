@@ -4,8 +4,10 @@ import { FormEvent, useState } from 'react';
 import type { OnboardingStep2FormData } from '@/lib/validators/onboarding';
 
 interface Step2IslamicInfoProps {
-  onData: (data: OnboardingStep2FormData) => void;
-  onSaveAndContinue: (data: OnboardingStep2FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onData: (_data: OnboardingStep2FormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onSaveAndContinue: (_data: OnboardingStep2FormData) => void;
   loading: boolean;
   gender: 'MALE' | 'FEMALE';
   fieldErrors: Record<string, string>;

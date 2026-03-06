@@ -7,8 +7,10 @@ import type {
 } from '@/lib/validators/onboarding';
 
 interface Step5WaliInfoProps {
-  onData: (data: OnboardingStep5FemaleFormData | OnboardingStep5MaleFormData) => void;
-  onSaveAndContinue: (data: OnboardingStep5FemaleFormData | OnboardingStep5MaleFormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onData: (_data: OnboardingStep5FemaleFormData | OnboardingStep5MaleFormData) => void;
+  // eslint-disable-next-line no-unused-vars
+  onSaveAndContinue: (_data: OnboardingStep5FemaleFormData | OnboardingStep5MaleFormData) => void;
   loading: boolean;
   gender: 'MALE' | 'FEMALE';
   fieldErrors: Record<string, string>;

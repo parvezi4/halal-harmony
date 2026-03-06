@@ -1,6 +1,5 @@
 import {
   OnboardingStep1Schema,
-  OnboardingStep3Schema,
   OnboardingStep5FemaleSchema,
   validateOnboardingStep,
   isValidMaritalStatus,
