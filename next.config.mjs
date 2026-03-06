@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    reactCompiler: true
+    reactCompiler: true,
   },
   // Next.js App Router looks for app/ at the root by default
   // Since we have it in src/app/, we use a symlink or move app to root
@@ -10,4 +10,3 @@ const nextConfig = {
 };
 
 export default nextConfig;
-
