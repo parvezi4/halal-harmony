@@ -15,4 +15,7 @@ if ! command -v npm >/dev/null 2>&1; then
 	exit 127
 fi
 
-npm test
+echo "Running staged lint checks..."
+npm run precommit:staged || exit 1
+
+echo "✅ Pre-commit checks passed!"
