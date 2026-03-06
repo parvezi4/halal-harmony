@@ -181,7 +181,7 @@ describe('POST /api/your-route', () => {
 });
 ```
 
-For more details, see the [API Testing section in PLAN.md](PLAN.md).
+For more details, see the [API Testing section in PLAN.md](docs/PLAN.md).
 
 ### Test Credentials
 
@@ -213,8 +213,8 @@ After running `npm run prisma:seed`, use these credentials to test the applicati
 - `app/` – App Router pages, layouts, and route handlers
 - `config/stripe.ts` – Stripe client and price ID helpers
 - `prisma/schema.prisma` – Data model (to be added)
-- `PLAN.md` / `wireframes.md` – Product plan and wireframes
-- `specs/` - User stories to be implemented
-- `halal-harmony-wireframes.excalidraw` – Excalidraw file with wireframes
+- `docs/PLAN.md` / `docs/wireframes.md` – Product plan and wireframes
+- `docs/specs/` - User stories to be implemented
+- `docs/halal-harmony-wireframes.excalidraw` – Excalidraw file with wireframes
 
 As we build out the MVP, this README can be expanded with more detailed docs for deployment, migrations, and admin tooling.

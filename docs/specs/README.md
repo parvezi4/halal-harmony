@@ -11,7 +11,7 @@
 
 ### Recommended workflow
 
-- **Authoring**: Write new stories/specs in YAML or Markdown under `specs/`, and review them via pull requests.
+- **Authoring**: Write new stories/specs in YAML or Markdown under `docs/specs/`, and review them via pull requests.
 - **Linking**: Reference story IDs (e.g. `search-basic-filters`) in your task/issue tracker so implementation work can trace back to the spec.
 - **Updating**: When you materially change behavior, update the relevant YAML/Markdown file and bump the `last_updated` field where present.
 
