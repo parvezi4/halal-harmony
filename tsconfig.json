@@ -15,7 +15,7 @@
     "types": ["node", "react", "react-dom", "jest"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     },
     "esModuleInterop": true,
     "plugins": [

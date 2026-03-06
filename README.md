@@ -210,8 +210,8 @@ After running `npm run prisma:seed`, use these credentials to test the applicati
 
 ## Project structure (high level)
 
-- `app/` – App Router pages, layouts, and route handlers
-- `config/stripe.ts` – Stripe client and price ID helpers
+- `src/app/` – App Router pages, layouts, and route handlers
+- `src/config/stripe.ts` – Stripe client and price ID helpers
 - `prisma/schema.prisma` – Data model (to be added)
 - `docs/PLAN.md` / `docs/wireframes.md` – Product plan and wireframes
 - `docs/specs/` - User stories to be implemented
