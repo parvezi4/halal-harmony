@@ -107,10 +107,7 @@ export default [
       ...tseslint.configs.recommended.rules,
       ...nextPlugin.configs.recommended.rules,
       'react-hooks/exhaustive-deps': 'warn',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_' },
-      ],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
