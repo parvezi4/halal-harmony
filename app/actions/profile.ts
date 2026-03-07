@@ -3,10 +3,7 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import {
-  ProfileUpdateSchema,
-  type ProfileUpdateFormData,
-} from '@/lib/validators/profileUpdate';
+import { ProfileUpdateSchema, type ProfileUpdateFormData } from '@/lib/validators/profileUpdate';
 
 export type ActionResponse = {
   success: boolean;
@@ -63,9 +60,7 @@ export async function getProfileData(): Promise<ActionResponse> {
 /**
  * Update profile data with validation
  */
-export async function updateProfile(
-  formData: ProfileUpdateFormData
-): Promise<ActionResponse> {
+export async function updateProfile(formData: ProfileUpdateFormData): Promise<ActionResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -86,7 +81,7 @@ export async function updateProfile(
 
     // Validate data with gender-specific rules
     const validation = ProfileUpdateSchema.safeParse(formData);
-    
+
     if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
       validation.error.errors.forEach((err) => {
@@ -101,14 +96,21 @@ export async function updateProfile(
 
     // Gender-specific validation: Females must have wali info
     if (currentProfile.gender === 'FEMALE') {
-      if (!validData.waliName || !validData.waliEmail || 
-          !validData.waliRelationship || !validData.waliPhone) {
+      if (
+        !validData.waliName ||
+        !validData.waliEmail ||
+        !validData.waliRelationship ||
+        !validData.waliPhone
+      ) {
         const waliErrors: Record<string, string> = {};
         if (!validData.waliName) waliErrors.waliName = 'Wali name is required for female profiles';
-        if (!validData.waliEmail) waliErrors.waliEmail = 'Wali email is required for female profiles';
-        if (!validData.waliRelationship) waliErrors.waliRelationship = 'Wali relationship is required for female profiles';
-        if (!validData.waliPhone) waliErrors.waliPhone = 'Wali phone is required for female profiles';
-        
+        if (!validData.waliEmail)
+          waliErrors.waliEmail = 'Wali email is required for female profiles';
+        if (!validData.waliRelationship)
+          waliErrors.waliRelationship = 'Wali relationship is required for female profiles';
+        if (!validData.waliPhone)
+          waliErrors.waliPhone = 'Wali phone is required for female profiles';
+
         return {
           success: false,
           errors: waliErrors,

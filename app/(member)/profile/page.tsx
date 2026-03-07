@@ -304,7 +304,9 @@ export default function ProfilePage() {
                   unoptimized
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Photo</div>
+                <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                  Photo
+                </div>
               )}
             </div>
             <label className="mt-3 cursor-pointer rounded-full border border-slate-700 px-4 py-1.5 text-xs font-semibold text-slate-100 hover:border-slate-500">
@@ -321,11 +323,17 @@ export default function ProfilePage() {
             <p className="mt-2 text-center text-[11px] text-slate-400">
               Please follow modesty guidelines. Photos are reviewed before being visible to others.
             </p>
-            {photoMessage && <p className="mt-2 text-center text-[11px] text-slate-300">{photoMessage}</p>}
-            {photoLoading && <p className="mt-2 text-center text-[11px] text-slate-400">Loading photos...</p>}
+            {photoMessage && (
+              <p className="mt-2 text-center text-[11px] text-slate-300">{photoMessage}</p>
+            )}
+            {photoLoading && (
+              <p className="mt-2 text-center text-[11px] text-slate-400">Loading photos...</p>
+            )}
             {primaryPhoto && (
               <div className="mt-2 flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-950/40 px-2 py-1 text-[11px] text-slate-300">
-                <span>{primaryPhoto.isApproved ? 'Primary approved' : 'Primary pending review'}</span>
+                <span>
+                  {primaryPhoto.isApproved ? 'Primary approved' : 'Primary pending review'}
+                </span>
                 <button
                   type="button"
                   onClick={() => handleDeletePhoto(primaryPhoto.id)}
@@ -353,7 +361,11 @@ export default function ProfilePage() {
                     />
                     <div className="mt-2 flex items-center justify-between gap-2">
                       <span className="text-[11px] text-slate-400">
-                        {photo.isPrimary ? 'Primary' : photo.isApproved ? 'Approved' : 'Pending review'}
+                        {photo.isPrimary
+                          ? 'Primary'
+                          : photo.isApproved
+                            ? 'Approved'
+                            : 'Pending review'}
                       </span>
                       <div className="flex gap-2">
                         {!photo.isPrimary && (
@@ -459,9 +471,7 @@ export default function ProfilePage() {
                     </option>
                   ))}
                 </select>
-                {errors.country && (
-                  <p className="text-xs text-red-400">{errors.country.message}</p>
-                )}
+                {errors.country && <p className="text-xs text-red-400">{errors.country.message}</p>}
               </div>
 
               <div className="space-y-1">
@@ -890,4 +900,3 @@ export default function ProfilePage() {
     </form>
   );
 }
-
