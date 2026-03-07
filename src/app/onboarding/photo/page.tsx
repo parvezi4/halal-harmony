@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type ProfilePhoto = {
   id: string;
@@ -157,7 +158,7 @@ export default function OnboardingPhotoPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {photos.map((photo) => (
                 <div key={photo.id} className="rounded border border-slate-700 p-2 bg-slate-800">
-                  <img src={photo.url} alt="Profile" className="h-24 w-full object-cover rounded" />
+                  <Image src={photo.url} alt="Profile" width={200} height={96} className="h-24 w-full object-cover rounded" />
                   <div className="mt-2 text-xs text-slate-300 space-y-1">
                     <div>{photo.isPrimary ? 'Primary photo' : 'Secondary photo'}</div>
                     <div>{photo.isBlurred ? 'Blurred in search' : 'Visible in search'}</div>
