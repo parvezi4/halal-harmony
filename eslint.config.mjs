@@ -27,7 +27,7 @@ export default [
       'tsconfig.json',
     ],
   },
-  
+
   // JavaScript files
   {
     files: ['**/*.{js,jsx,mjs,cjs}'],
@@ -51,8 +51,8 @@ export default [
       ...js.configs.recommended.rules,
     },
   },
-  
-  // TypeScript files  
+
+  // TypeScript files
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
