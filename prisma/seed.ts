@@ -12,6 +12,8 @@ async function main() {
   await prisma.message.deleteMany();
   await prisma.messageThread.deleteMany();
   await prisma.report.deleteMany();
+  await prisma.profileView.deleteMany();
+  await prisma.favorite.deleteMany();
   await prisma.subscription.deleteMany();
   await prisma.photo.deleteMany();
   await prisma.profile.deleteMany();

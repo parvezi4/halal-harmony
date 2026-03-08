@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 
 // Import route handlers after mocks are initialized.
-let routeModule: typeof import('../../../app/api/profile/photos/route');
+let routeModule: typeof import('../../../src/app/api/profile/photos/route');
 
 jest.mock('next-auth/next', () => ({
   getServerSession: jest.fn(),
@@ -35,7 +35,7 @@ jest.mock('@/lib/prisma', () => ({
 
 describe('/api/profile/photos route handlers', () => {
   beforeAll(async () => {
-    routeModule = await import('../../../app/api/profile/photos/route');
+    routeModule = await import('../../../src/app/api/profile/photos/route');
   });
 
   beforeEach(() => {

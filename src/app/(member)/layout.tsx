@@ -39,6 +39,9 @@ export default async function MemberLayout({ children }: { children: ReactNode }
             <Link href="/search" className="text-slate-200 hover:text-accent-200">
               Search
             </Link>
+            <Link href="/favorites" className="text-slate-200 hover:text-accent-200">
+              Favorites
+            </Link>
             <Link href="/messages" className="text-slate-200 hover:text-accent-200">
               Messages
             </Link>

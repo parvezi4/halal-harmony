@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { authOptions } from '@/auth';
 import { prisma } from '@/lib/prisma';
@@ -125,5 +125,101 @@ export async function POST(request: Request) {
     success: true,
     photos: createdPhotos,
     message: 'Photos uploaded successfully. Photos are blurred until exchange approval.',
+  });
+}
+
+export async function PATCH(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const profile = await getProfile(session.user.id);
+  if (!profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+  }
+
+  const body = await request.json().catch(() => null);
+  const photoId = body?.photoId as string | undefined;
+
+  if (!photoId) {
+    return NextResponse.json({ error: 'photoId is required' }, { status: 400 });
+  }
+
+  const targetPhoto = profile.photos.find((photo) => photo.id === photoId);
+  if (!targetPhoto) {
+    return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
+  }
+
+  await prisma.$transaction([
+    prisma.photo.updateMany({
+      where: { profileId: profile.id },
+      data: { isPrimary: false },
+    }),
+    prisma.photo.update({
+      where: { id: photoId },
+      data: { isPrimary: true },
+    }),
+  ]);
+
+  const updatedProfile = await getProfile(session.user.id);
+  return NextResponse.json({
+    success: true,
+    photos: updatedProfile?.photos ?? [],
+    message: 'Primary photo updated',
+  });
+}
+
+export async function DELETE(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const profile = await getProfile(session.user.id);
+  if (!profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+  }
+
+  const body = await request.json().catch(() => null);
+  const photoId = body?.photoId as string | undefined;
+
+  if (!photoId) {
+    return NextResponse.json({ error: 'photoId is required' }, { status: 400 });
+  }
+
+  const targetPhoto = profile.photos.find((photo) => photo.id === photoId);
+  if (!targetPhoto) {
+    return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
+  }
+
+  await prisma.photo.delete({ where: { id: photoId } });
+
+  const remainingPhotos = await prisma.photo.findMany({
+    where: { profileId: profile.id },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  if (targetPhoto.isPrimary && remainingPhotos.length > 0) {
+    await prisma.photo.update({
+      where: { id: remainingPhotos[0].id },
+      data: { isPrimary: true },
+    });
+  }
+
+  if (targetPhoto.url.startsWith('/uploads/')) {
+    const fileOnDisk = path.join(process.cwd(), 'public', targetPhoto.url.replace(/^\//, ''));
+    try {
+      await unlink(fileOnDisk);
+    } catch {
+      // Ignore missing file errors and return success for DB cleanup.
+    }
+  }
+
+  const updatedProfile = await getProfile(session.user.id);
+  return NextResponse.json({
+    success: true,
+    photos: updatedProfile?.photos ?? [],
+    message: 'Photo deleted',
   });
 }

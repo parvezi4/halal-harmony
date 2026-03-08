@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getDashboardData, type DashboardResponse } from '@/app/actions/dashboard';
+import Footer from '../../components/Footer';
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardResponse['data'] | null>(null);
@@ -170,6 +171,10 @@ export default function DashboardPage() {
           )}
         </ul>
       </section>
+
+      <div className="-mx-4 mt-8 sm:-mx-6 lg:-mx-8">
+        <Footer />
+      </div>
     </div>
   );
 }

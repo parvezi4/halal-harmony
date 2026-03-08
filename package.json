@@ -4,6 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check:route-root": "node scripts/enforce-src-app-only.mjs",
+    "cleanup:legacy-app": "node scripts/cleanup-legacy-app.mjs",
+    "predev": "npm run check:route-root",
+    "prebuild": "npm run check:route-root",
+    "prestart": "npm run check:route-root",
+    "prelint": "npm run check:route-root",
+    "pretest": "npm run check:route-root",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
