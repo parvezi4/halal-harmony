@@ -92,6 +92,16 @@ isProject: false
     - Option to hide exact age (show range) or city (show country/region only).
 - **Profile completeness & status**
   - Profile completeness indicator to encourage filling key fields.
+  - **Completeness Calculation**: Percentage based on total (mandatory + optional) fields filled.
+    - **Mandatory fields** (~12-15 depending on gender):
+      - Alias, Gender, Location (city/country), Date of birth
+      - Practicing level, Prayer habit, Body shape, Hijab/Beard preference
+      - Marital status, Number of children, Spouse status preferences
+      - Wali info for females (name, relationship, contact)
+    - **Optional fields** (~5):
+      - About/Bio, Photos, Education, Profession, Madhab/Religious school
+    - **Formula**: `(completed_fields / total_fields) × 100%`
+    - Example: If 13 fields completed out of 17 total, percentage = 76%
   - Status: pending review, approved, suspended.
 
 #### 3. Search & discovery
@@ -144,9 +154,15 @@ isProject: false
 
 #### 6. Dashboard & UX
 
-- **Member dashboard**
-  - Overview cards: profile completeness, subscription status, new messages, new profile matches.
-  - Quick links: edit profile, search, favourites, subscription plans.
+- **Member dashboard** (`/dashboard`)
+  - **Overview cards**: 
+    - Profile completeness (with progress bar showing % and field counts: X/Y fields completed)
+    - Subscription status (Free/Premium/Expired with conditional upgrade button)
+    - Messages (unread conversations count, total active threads)
+    - Profiles to explore (available opposite-gender profile count)
+  - **Quick action buttons**: Edit profile, Start search, Favourites, Manage subscription
+  - **Dynamic content**: All data fetched from database; greeting personalized with user's alias or name; member-since date from account creation
+  - **API endpoint**: `GET /api/dashboard` (authenticated, returns dashboard data with completeness breakdown)
 - **Notifications (MVP-level)**
   - In-app notification badges for new messages.
   - Email notifications for new messages (with opt-out) and subscription events (renewal, failure, expiry).

@@ -146,10 +146,13 @@ epics:
         goal: 'see how complete my profile is and whether it is ready for others to view'
         reason: 'so that I am motivated to fill key information and know if my profile is active'
         acceptance_criteria:
-          - 'A completeness indicator (percentage or tier) is shown on the dashboard.'
-          - 'Completeness is calculated based on key fields across onboarding steps (basic info, Islamic info, marital/family, about/expectations, at least one preference).'
+          - 'A completeness percentage (0-100%) is shown on the dashboard with a progress bar.'
+          - 'Completeness is calculated as: (completed_fields / total_fields) × 100%'
+          - 'Fields include mandatory (~12-15 depending on gender: alias, gender, location, DOB, Islamic info, marital status, spouse preferences, wali info for females) and optional (~5: photos, bio, education, profession, madhab).'
+          - 'Completeness indicator shows field count breakdown (e.g., "15/18 fields completed").'
+          - 'Completeness on dashboard is data-driven from database, not a static calculation.'
           - 'Profile has statuses: pending_review, approved, suspended (even if moderation tools are minimal in Phase 1).'
-          - 'New profiles default to a clearly defined initial status (documented in the implementation).'
+          - 'New profiles default to pending_review status after onboarding completion.'
           - 'Only approved and sufficiently complete profiles appear in search results.'
 
   - id: profile-view
@@ -243,5 +246,11 @@ epics:
         acceptance_criteria:
           - 'After login, users with incomplete profiles are redirected to onboarding; complete profiles go to the dashboard.'
           - "Dashboard shows a greeting with alias/name, profile completeness indicator, and a clear CTA to 'Complete profile' or 'Edit profile'."
-          - "Dashboard includes quick links to: search, favourites/shortlist, and a basic 'Subscription status' area (e.g. 'Free member')."
+          - 'Profile completeness percentage is calculated as: (completed_fields / total_fields) × 100%, where total_fields includes all mandatory (~12-15) and optional (~5) fields.'
+          - 'Completeness progress bar displays the percentage and field count (e.g., "80% complete, 14/18 fields").'
+          - "Dashboard includes quick links to: search, favourites/shortlist, and a 'Subscription status' area (e.g. 'Free member', 'Premium member')."
+          - 'Subscription badge shows status (free/premium/expired) with conditional "Upgrade" button for free tier.'
+          - 'Messages card displays unread conversation and total active thread counts.'
+          - 'Dashboard includes count of available profiles (opposite-gender, approved users available to view).'
           - 'Layout is mobile-first and responsive for small screens in Phase 1.'
+          - 'All data (user name, member-since date, message counts, match counts) is fetched from database; no hardcoded placeholders.'
