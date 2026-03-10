@@ -66,10 +66,32 @@ todos:
   - id: messaging-microservice
     content: 'Messaging architecture: Extract messaging into separate microservice for better scalability and real-time performance.'
     status: future
+  # Admin Panel Improvements (Phase 3)
+  - id: admin-panel-improvements
+    content: 'Admin: Redesign and improve admin panel UI/UX, including dashboard overview stats, user management table, role/permissions editor, and moderation queue enhancements.'
+    status: future
+  - id: admin-user-management
+    content: 'Admin: Build full user management interface (list, search, filter, suspend/ban, role change) to replace direct DB access.'
+    status: future
+  - id: admin-moderation-enhancements
+    content: 'Admin: Enhance moderation queue with bulk actions, filter by report type, user history panel, and audit log.'
+    status: future
+  - id: admin-analytics-dashboard
+    content: 'Admin: Add analytics dashboard showing sign-ups over time, active subscribers, message volume, and moderation stats.'
+    status: future
 isProject: false
 ---
 
 ### Implementation snapshot (as of 2026-03-10)
+
+**Phase 3 - Admin Auth Hardening (Complete ✅):**
+- Split login portals fully implemented and tested (members → `/auth/login`, admins/moderators → `/admin/login`).
+- Admin login isolated from the protected admin layout tree (moved to `(public)` route group) — eliminates redirect loop for unauthenticated admins.
+- Wrong-portal logins rejected with corrective error messages directing users to the correct URL.
+- Admin shell logout action replaces the previous "Back to Site" link — uses same icon/pattern as the member logout.
+- `MODERATOR` enum value synced to live database; moderator credentials and `ModeratorPermissionConfig` seeded.
+- 15 new tests added covering split login route handlers and auth utility functions (4+4+4+3).
+- Docs updated: README portal guidance, `SEED_DATA_REFERENCE.md` credentials, `PLAN.md` snapshot.
 
 **Phase 1 - Core Features:**
 - Favorites flow is implemented end-to-end:
