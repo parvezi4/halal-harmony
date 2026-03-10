@@ -18,11 +18,60 @@ todos:
   - id: setup-api-tests
     content: Set up Jest with API tests for auth/search/dashboard/favorites routes and enforce local quality gates.
     status: completed
+  # Messaging Feature (Phase 2)
+  - id: implement-messaging-mvp
+    content: Implement real-time messaging with SSE, subscription gating, and configurable Shariah-compliant moderation.
+    status: completed
+  # Future Messaging Enhancements
+  - id: messaging-read-receipts
+    content: "Messaging enhancement: Add read receipts and 'seen by' indicators to messages."
+    status: future
+  - id: messaging-typing-indicators
+    content: 'Messaging enhancement: Add typing indicators to show when the other person is typing.'
+    status: future
+  - id: messaging-edit-delete
+    content: 'Messaging enhancement: Allow users to edit or delete their sent messages within a time limit.'
+    status: future
+  - id: messaging-file-attachments
+    content: 'Messaging enhancement: Support file and image attachments in messages with Islamic modesty filters.'
+    status: future
+  - id: messaging-ai-moderation
+    content: 'Messaging enhancement: Implement advanced AI-based content moderation using GPT for contextual analysis of Shariah compliance.'
+    status: future
+  - id: messaging-email-notifications
+    content: 'Messaging enhancement: Send email notifications when users receive new messages while offline.'
+    status: future
+  - id: messaging-block-mute-ui
+    content: 'Messaging enhancement: Build UI for block/mute functionality (schema fields exist but no interface).'
+    status: future
+  - id: messaging-search-filter
+    content: 'Messaging enhancement: Add message search and filtering within conversations.'
+    status: future
+  - id: messaging-wali-visibility
+    content: "Messaging enhancement: Allow Wali (guardian) visibility into female user's conversations for additional oversight."
+    status: future
+  # Messaging Performance & Scalability
+  - id: messaging-admin-workload
+    content: 'Messaging scalability: Implement trust scores or user reputation to reduce admin moderation workload (new users pre-moderated, trusted users post-moderated).'
+    status: future
+  - id: messaging-sse-tab-sharing
+    content: 'Messaging performance: Implement SSE connection sharing across browser tabs using shared workers or tab visibility API.'
+    status: future
+  - id: messaging-prisma-pulse
+    content: 'Messaging scalability: Migrate from polling to Prisma Pulse real-time change streams when scaling messaging beyond MVP.'
+    status: future
+  - id: messaging-thread-limits
+    content: 'Messaging policy: Evaluate and implement conversation thread limits based on Islamic advisor guidance to prevent parallelizing multiple prospects.'
+    status: future
+  - id: messaging-microservice
+    content: 'Messaging architecture: Extract messaging into separate microservice for better scalability and real-time performance.'
+    status: future
 isProject: false
 ---
 
 ### Implementation snapshot (as of 2026-03-10)
 
+**Phase 1 - Core Features:**
 - Favorites flow is implemented end-to-end:
   - Toggle add/remove from search results and the favorites page.
   - Star icon reflects state (outlined when not favorited, solid green when favorited).
@@ -32,6 +81,28 @@ isProject: false
 - Local hooks are active:
   - Pre-commit: staged lint checks.
   - Pre-push: typecheck and API tests.
+
+**Phase 2 - Messaging (Phase 2 Implementation Complete ✅):**
+- Real-time messaging with Server-Sent Events (SSE) for instant delivery without page refresh
+- Subscription-based conversation initiation (at least one party must have premium subscription)
+- Shariah-compliant content moderation with pattern-based filtering (bad-words library + custom regexes)
+- Pre-moderation workflow: flagged messages held in queue for admin review before delivery
+- Message pagination: loads 10 latest messages initially, then 5 older on upscroll for efficient browsing
+- Message status indicators: "Sent", "Under Review" (for flagged), "Delivered", "Read"
+- Real-time inbox synchronization: threads move to top, unread counter updates without refresh
+- Admin moderation interface at `/admin/moderation` to review and approve/reject flagged messages
+- Female-only wali reminder in chat interface (checks for FEMALE gender enum value)
+- Send Message button on profile view with subscription validation and link to pricing
+- WhatsApp-style timestamps (time for today, "Yesterday", day name within 7 days, date for older)
+- Enter-to-send with Shift+Enter for newline, 2000 character limit, no page refresh
+- Fixed 600px chat window with scrollbar and scroll position preservation on older-message load
+- Auto-thread selection from query param with textarea auto-focus on navigation from profile
+- Message thread creation with bidirectional lookup (prevents duplicate threads)
+- Admin-only moderation dashboard with context view, approval/rejection, and warning notifications
+- Unread counter badge in navigation header with real-time updates
+- Empty state handling (no "Loading..." for truly empty conversations)
+- 15 message action tests + 11 admin moderation tests (26 total) passing with comprehensive coverage
+- Fixed message ordering bug: added secondary sort by ID for deterministic ordering even with identical timestamps
 
 ### High-level goals
 
@@ -134,15 +205,74 @@ isProject: false
 
 - **Conversation model**
   - 1-to-1 text conversations between compatible, opposite-gender members.
+  - Real-time updates using Server-Sent Events (SSE) for instant message delivery without page refresh.
+  - Message threads tracked with last message timestamp, unread count, and moderation status.
   - Optional field to CC wali/guardian email or add them to the conversation in future versions (MVP: just store wali contact info on profile for offline sharing).
+- **Subscription-based initiation**
+  - **At least one party must have an active subscription** to start a conversation:
+    - Subscribed user (male or female) can initiate conversation with any compatible match.
+    - Free user can only respond if a subscribed user initiates first.
+    - Clear error messaging when free user attempts to initiate: "Subscription required to start conversations."
+  - Once conversation is initiated, both parties can send/receive messages regardless of who paid.
+- **Content moderation for Shariah compliance**
+  - **Configurable moderation system**:
+    - **Type**: Pattern-based (MVP) or AI/NLP (future, interface ready).
+    - **Workflow**: Pre-moderation (default) or Post-moderation (admin configurable).
+  - **Pattern-based detection** (MVP implementation):
+    - Profanity filtering using `bad-words` or `leo-profanity` library.
+    - Custom regex patterns for Islamic modesty violations (sexual advances, inappropriate content).
+    - Keyword lists for English and transliterated Arabic terms.
+  - **Pre-moderation workflow** (default):
+    - Flagged messages held in pending state, not delivered to recipient.
+    - Sender sees "Message under review" indicator.
+    - Subsequent messages in same thread queued to preserve chronological order.
+    - Admin reviews, approves or rejects with optional warning.
+  - **Post-moderation workflow** (optional, admin toggle):
+    - Flagged messages delivered immediately but marked for review.
+    - Admin reviews after delivery, can send warnings or take action on repeat offenders.
+  - **Admin moderation interface**:
+    - Dashboard at `/admin/moderation` to review pending messages.
+    - Settings page at `/admin/moderation/settings` to configure moderation type and workflow.
+    - View full thread context, flagged reason, and conversation history.
+    - Actions: Approve, Reject + Warn User, Block Thread.
+- **Real-time messaging features**
+  - **Instant delivery**: Messages appear within ~5 seconds without page refresh (SSE polling interval).
+  - **Unread counter**: Badge on Messages navigation link shows unread count, updates in real-time.
+  - **Message status indicators**:
+    - "Sent" - message delivered successfully.
+    - "Under Review" - message flagged and pending admin approval (pre-moderation mode).
+    - "Delivered" - message appears to recipient (clean or post-moderation mode).
+  - **Conversation interface**:
+    - Inbox list showing all conversations sorted by last message time.
+    - Click conversation to open chat view with message bubbles.
+    - Send message with text input and send button.
+    - Filter conversations: All / Unread / Favorited.
 - **Messaging rules for MVP**
-  - Only paid subscribers can initiate messages.
-  - Limit on number of new conversations per day/week to reduce spam.
-  - Simple text messages only (no images/attachments in MVP).
-  - Basic blocking and reporting within a conversation.
+  - Simple text messages only (no images/attachments in MVP - planned for future).
+  - Basic blocking within a conversation (schema ready, UI in future version).
+  - Reporting conversations for inappropriate content.
+  - Limit on number of new conversations per day/week to reduce spam (future consideration).
 - **Inbox UI**
-  - List of conversations with name/alias, last message, timestamp, unread count.
-  - Conversation view optimized for mobile.
+  - List of conversations with participant name/alias, last message preview, timestamp, unread badge.
+  - Real-time updates when new messages arrive (thread moves to top, unread count increments).
+  - Conversation view optimized for mobile and desktop.
+  - "Start New Conversation" button opens modal to select recipient from favorites or search.
+- **Technical implementation**
+  - Server-Sent Events (SSE) for real-time updates (browser-native, works on all platforms).
+  - Database polling every 5 seconds for new messages (balance between real-time feel and server load).
+  - Moderation configuration stored in database, changeable via admin UI without code deploy.
+  - Comprehensive unit tests for subscription gating, content moderation, and message delivery.
+- **Future enhancements** (see todos):
+  - Read receipts and "seen by" indicators.
+  - Typing indicators.
+  - Message editing/deletion.
+  - File and image attachments with Islamic modesty filters.
+  - Advanced AI-based content moderation.
+  - Email notifications for new messages.
+  - Block/mute UI.
+  - Message search and filtering.
+  - Wali visibility into conversations.
+  - Performance optimizations (SSE tab sharing, Prisma Pulse, microservice architecture).
 
 #### 5. Subscription & payments
 

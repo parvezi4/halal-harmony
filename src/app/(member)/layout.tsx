@@ -6,6 +6,7 @@ import type { Session } from 'next-auth';
 import { authOptions } from '@/auth';
 import { isProfileComplete } from '@/lib/auth/profileStatus';
 import LogoutButton from './LogoutButton';
+import { MessagesCounter } from './messages/MessagesCounter';
 
 export default async function MemberLayout({ children }: { children: ReactNode }) {
   const session = (await getServerSession(authOptions)) as
@@ -42,8 +43,9 @@ export default async function MemberLayout({ children }: { children: ReactNode }
             <Link href="/favorites" className="text-slate-200 hover:text-accent-200">
               Favorites
             </Link>
-            <Link href="/messages" className="text-slate-200 hover:text-accent-200">
+            <Link href="/messages" className="relative text-slate-200 hover:text-accent-200">
               Messages
+              <MessagesCounter />
             </Link>
             <Link href="/profile" className="text-slate-200 hover:text-accent-200">
               Profile

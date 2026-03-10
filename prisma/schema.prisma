@@ -212,6 +212,20 @@ model Message {
   content    String
   createdAt  DateTime       @default(now())
   isRead     Boolean        @default(false)
+  
+  // Content moderation fields
+  isFlagged        Boolean           @default(false)
+  flaggedReason    String?
+  moderationStatus ModerationStatus  @default(APPROVED)
+
+  @@index([moderationStatus])
+  @@index([threadId, createdAt])
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Report {

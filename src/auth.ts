@@ -9,6 +9,7 @@ type SessionWithUser = {
   user?: {
     id?: string;
     role?: string;
+    gender?: string;
     name?: string | null;
     email?: string | null;
     image?: string | null;
@@ -68,9 +69,19 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }: { session: SessionWithUser; token: JWT }) {
-      if (session.user) {
+      if (session.user && token.id) {
         session.user.id = token.id;
         session.user.role = token.role;
+
+        // Fetch gender from profile
+        const userProfile = await prisma.profile.findUnique({
+          where: { userId: token.id as string },
+          select: { gender: true },
+        });
+
+        if (userProfile) {
+          session.user.gender = userProfile.gender;
+        }
       }
       return session;
     },

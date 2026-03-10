@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getSearchProfileDetail } from '@/app/actions/search';
+import { SendMessageButton } from './SendMessageButton';
 import Footer from '../../../components/Footer';
 import BackButton from './BackButton';
 
@@ -30,14 +31,26 @@ export default async function SearchProfileDetailPage({
         )}
       </div>
 
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <SendMessageButton recipientId={userId} />
+        </div>
+      </div>
+
       <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
         <h1 className="text-xl font-semibold text-slate-50">
           {profile.alias || 'Member'}
-          {profile.age ? `, ${profile.age}` : profile.ageRangeLabel ? `, ${profile.ageRangeLabel}` : ''}
+          {profile.age
+            ? `, ${profile.age}`
+            : profile.ageRangeLabel
+              ? `, ${profile.ageRangeLabel}`
+              : ''}
         </h1>
         <p className="mt-1 text-sm text-slate-300">{location || 'Location hidden'}</p>
         <p className="mt-2 text-xs text-slate-400">
-          {[profile.practicingLevel, profile.prayerHabit, profile.hijabOrBeard].filter(Boolean).join(' • ')}
+          {[profile.practicingLevel, profile.prayerHabit, profile.hijabOrBeard]
+            .filter(Boolean)
+            .join(' • ')}
         </p>
       </header>
 
@@ -48,7 +61,10 @@ export default async function SearchProfileDetailPage({
         ) : (
           <div className="mt-3 flex flex-wrap gap-3">
             {profile.photos.map((photo, index) => (
-              <div key={`${photo.url}-${index}`} className="h-16 w-16 overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
+              <div
+                key={`${photo.url}-${index}`}
+                className="h-16 w-16 overflow-hidden rounded-lg border border-slate-700 bg-slate-800"
+              >
                 <Image
                   src={photo.url}
                   alt={`Profile photo ${index + 1}`}
@@ -90,9 +106,15 @@ export default async function SearchProfileDetailPage({
       <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
         <h2 className="text-sm font-semibold text-slate-50">About</h2>
         <p className="mt-2 text-sm text-slate-300">{profile.about || 'Not shared yet.'}</p>
-        <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Family background</h3>
-        <p className="mt-1 text-sm text-slate-300">{profile.familyBackground || 'Not shared yet.'}</p>
-        <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Preferences</h3>
+        <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Family background
+        </h3>
+        <p className="mt-1 text-sm text-slate-300">
+          {profile.familyBackground || 'Not shared yet.'}
+        </p>
+        <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Preferences
+        </h3>
         <p className="mt-1 text-sm text-slate-300">{profile.preferences || 'Not shared yet.'}</p>
       </section>
 

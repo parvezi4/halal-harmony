@@ -217,26 +217,39 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 
 - **Goals**
   - Simple, mobile-friendly messaging within halal guidelines.
+  - Real-time updates without page refresh.
   - Clear restrictions for free vs paid members.
+  - Content moderation for Shariah compliance.
 
 #### 5.1 Inbox
 
 ```text
 ---------------------------------------------------------
-| Logo | Home | Search | Messages [active] | Profile   |
+| Logo | Home | Search | Messages [3] [active] | Profile|
+|                                ^unread counter badge  |
 ---------------------------------------------------------
-| Header: "Messages"                                  |
-|  - Small text: "Only subscribers can start new      |
-|    conversations" + [ Upgrade ] if needed.          |
+| Header: "Messages"                [+ New] button      |
+|  - Small text: "Subscription required to start new   |
+|    conversations" (if free user).                    |
 ---------------------------------------------------------
-| Conversation list (single column / stacked):        |
-|  Each row:                                          |
-|   [Profile thumbnail] [Alias]                       |
-|   Last message snippet (single line)                |
-|   Timestamp (e.g. "2h ago")    [Unread badge ●]     |
+| Filter / tabs:                                       |
+|  [ All ] [ Unread ] [ Favorited ]                    |
 ---------------------------------------------------------
-| Filter / tabs (optional MVP):                       |
-|  [ All ] [ Unread ] [ Favorited ]                   |
+| Conversation list (single column / stacked):         |
+|  Each row:                                           |
+|   [Profile thumbnail] [Alias]           [⋮]          |
+|   Last message snippet (single line)                 |
+|   Timestamp (e.g. "2h ago")    [Unread badge 2●]     |
+|   Status indicator (if under review): "⏳ Pending"   |
+---------------------------------------------------------
+| Real-time behavior:                                  |
+|  - New messages appear instantly (SSE updates)       |
+|  - Thread with new message moves to top of list      |
+|  - Unread counter increments automatically           |
+---------------------------------------------------------
+| Empty state (no conversations):                      |
+|  "No conversations yet"                              |
+|  [Start a New Conversation]                          |
 ---------------------------------------------------------
 ```
 
@@ -244,30 +257,119 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 
 ```text
 ---------------------------------------------------------
-| < Back | [Alias]                        [⋮ options]  |
+| < Back | [Alias]                        [⋮ options]   |
 ---------------------------------------------------------
 | Small banner (top):                                   |
-|  - "Remember: keep communication halal. Involve your  |
-|     wali early where appropriate."                    |
+|  - "Keep communication halal. Involve your wali      |
+|     early where appropriate."                        |
 ---------------------------------------------------------
 | MESSAGE THREAD AREA                                  |
 |  - Simple bubble layout, no images:                  |
 |                                                      |
-|   [You]   Right-aligned light bubble                 |
-|   [Them]  Left-aligned darker bubble                 |
+|   [Them]  Left-aligned gray bubble                   |
+|           "Assalamu alaikum..."                      |
+|           10:23 AM                                   |
 |                                                      |
-|  - Timestamps grouped periodically                    |
-|  - "Blocked" or "Reported" statuses if applicable    |
+|   [You]   Right-aligned blue bubble                  |
+|           "Wa alaikum assalam..."                    |
+|           10:25 AM    ✓ Sent                         |
+|                                                      |
+|   [You]   Right-aligned yellow bubble (if flagged)   |
+|           "..."                                      |
+|           10:26 AM    ⏳ Under Review               |
+|                                                      |
+|  - Auto-scroll to bottom on new messages             |
+|  - Real-time updates (new messages appear instantly) |
+|  - Timestamps grouped by day                         |
+|  - Message status indicators:                        |
+|     ✓ Sent (delivered)                               |
+|     ⏳ Under Review (flagged, pending moderation)    |
 ---------------------------------------------------------
-| Bottom input (if allowed):                           |
+| Bottom input:                                        |
 |  [ Type your message...               ] [ Send ]     |
-|  - If user exceeds conversation limit or not paid:   |
-|    disabled input with short explanation and         |
-|    [ Upgrade to continue ] button.                   |
+|  - If not allowed (subscription/limit):              |
+|    Disabled input with explanation:                  |
+|    "Subscription required" + [ Upgrade ] button      |
 ---------------------------------------------------------
 | Options menu (⋮):                                    |
-|  [ Block user ]                                      |
 |  [ Report conversation ]                             |
+|  [ Block user ] (future)                             |
+---------------------------------------------------------
+```
+
+#### 5.3 New Conversation Modal
+
+```text
+---------------------------------------------------------
+| Start New Conversation                           [×]  |
+---------------------------------------------------------
+| Search for a member:                                 |
+|  [ Search by name...                    ] [🔍]       |
+---------------------------------------------------------
+| Suggested from favorites:                            |
+|  [Profile thumb] Alias, Age, Location                |
+|  [ Start Conversation ]                              |
+|                                                      |
+|  [Profile thumb] Alias, Age, Location                |
+|  [ Start Conversation ]                              |
+---------------------------------------------------------
+| Search results:                                      |
+|  (Same format as above when user types)              |
+---------------------------------------------------------
+| Error state (if free user):                          |
+|  "⚠️ Subscription required to start conversations"   |
+|  [ Upgrade to Premium ] [ Cancel ]                   |
+---------------------------------------------------------
+```
+
+#### 5.4 Admin Moderation Dashboard
+
+```text
+---------------------------------------------------------
+| Admin Panel | Moderation [active] | Settings | Users |
+---------------------------------------------------------
+| Moderation Queue                                     |
+|  Filter: [ Pending ] [ Approved ] [ Rejected ]       |
+---------------------------------------------------------
+| Pending Messages (3)                                 |
+|                                                      |
+|  Thread: Ahmed ↔ Fatima                              |
+|  Flagged message from Ahmed:                         |
+|   "..." (content)                                    |
+|   Reason: Profanity detected: [word]                 |
+|   Time: 2h ago                                       |
+|                                                      |
+|  Thread context (last 5 messages shown):             |
+|   [Previous messages...]                             |
+|                                                      |
+|  Actions:                                            |
+|   [ ✓ Approve ] [ ✗ Reject ] [ ⚠️ Warn & Reject ]   |
+---------------------------------------------------------
+| Next message...                                      |
+---------------------------------------------------------
+```
+
+#### 5.5 Admin Moderation Settings
+
+```text
+---------------------------------------------------------
+| Admin Panel | Moderation | Settings [active] | Users |
+---------------------------------------------------------
+| Moderation Configuration                             |
+---------------------------------------------------------
+| Moderation Type:                                     |
+|  ○ Pattern Recognition (active)                      |
+|  ○ AI/NLP Analysis (coming soon - grayed out)        |
+---------------------------------------------------------
+| Moderation Workflow:                                 |
+|  ○ Pre-moderation (hold flagged messages)            |
+|  ○ Post-moderation (deliver, review after)           |
+---------------------------------------------------------
+| Current Status:                                      |
+|  Active: Pattern Recognition + Pre-moderation        |
+|  Pending messages in queue: 3                        |
+---------------------------------------------------------
+| [ Save Settings ]                                    |
 ---------------------------------------------------------
 ```
 

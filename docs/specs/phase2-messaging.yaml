@@ -1,0 +1,346 @@
+---
+phase: 2
+feature_area: Messaging
+description: Real-time messaging with subscription gating, Shariah-compliant content moderation, and admin review workflow
+last_updated: '2026-03-10'
+status: in-progress
+---
+
+user_stories:
+  # ===== Subscription-Based Conversation Initiation =====
+  
+  - id: msg-initiate-subscription-check
+    title: Subscription required to initiate conversations
+    as_a: Free member
+    i_want: To understand that I need a subscription to start conversations
+    so_that: I can upgrade if I want to initiate communication
+    acceptance_criteria:
+      - When I click "Start New Conversation", system checks if I or the recipient has an active subscription
+      - If neither party has active subscription, I see error: "At least one person must have a subscription to start a conversation"
+      - Error message includes clear "Upgrade to Premium" button
+      - If I have active subscription, I can initiate with any compatible match
+      - If recipient has active subscription, they can initiate with me (I can respond)
+    priority: P0
+    dependencies: []
+    
+  - id: msg-initiate-as-premium
+    title: Premium member initiates conversation
+    as_a: Premium member
+    i_want: To start a conversation with any compatible match
+    so_that: I can communicate with potential partners
+    acceptance_criteria:
+      - I see "Start New Conversation" button on inbox page
+      - Clicking button opens modal with search/favorites
+      - I can select a member from my favorites list
+      - I can search for a member by name
+      - Clicking "Start Conversation" creates new thread
+      - New thread appears in my inbox immediately
+      - I can send first message
+      - Free member can see thread and respond
+    priority: P0
+    dependencies: [msg-initiate-subscription-check]
+    
+  - id: msg-respond-as-free
+    title: Free member responds to initiated conversation
+    as_a: Free member
+    i_want: To respond to messages from premium members
+    so_that: I can communicate even without a subscription
+    acceptance_criteria:
+      - When premium member initiates conversation with me, thread appears in my inbox
+      - I can click thread to view messages
+      - I can type and send replies
+      - My replies are delivered to premium member
+      - I cannot initiate new conversations without subscription
+    priority: P0
+    dependencies: [msg-initiate-as-premium]
+    
+  # ===== Real-Time Message Delivery =====
+  
+  - id: msg-realtime-sse
+    title: Real-time message updates via SSE
+    as_a: Member in active conversation
+    i_want: To see new messages instantly without refreshing
+    so_that: I can have fluid, natural conversations
+    acceptance_criteria:
+      - When I open messages page, SSE connection is established
+      - When recipient sends message, it appears in my chat within 5 seconds
+      - Thread moves to top of inbox list automatically
+      - Unread counter increments without page refresh
+      - SSE connection auto-reconnects if dropped
+      - Connection is cleaned up when I navigate away
+    priority: P0
+    dependencies: []
+    
+  - id: msg-unread-counter
+    title: Unread message counter in navigation
+    as_a: Member
+    i_want: To see how many unread messages I have
+    so_that: I know when I need to check my inbox
+    acceptance_criteria:
+      - Navigation "Messages" link shows badge with unread count (e.g., "Messages [3]")
+      - Counter updates in real-time when new message arrives
+      - Counter decrements when I open conversation
+      - Counter resets to 0 when all messages read
+      - Counter only shows if > 0 (hidden when 0)
+    priority: P1
+    dependencies: [msg-realtime-sse]
+    
+  # ===== Content Moderation =====
+  
+  - id: msg-moderation-pattern
+    title: Pattern-based content filtering
+    as_a: System
+    i_want: To automatically flag messages with inappropriate content
+    so_that: Conversations remain Shariah-compliant
+    acceptance_criteria:
+      - System uses bad-words library to detect profanity
+      - System uses custom regex for sexual advances, inappropriate content
+      - System checks messages against English and transliterated Arabic keyword lists
+      - If message contains flagged content, it is marked with isFlagged=true
+      - FlaggedReason field stores detected violation (e.g., "Profanity: [word]")
+      - Clean messages are marked moderationStatus=APPROVED
+      - Flagged messages are marked moderationStatus=PENDING
+    priority: P0
+    dependencies: []
+    
+  - id: msg-moderation-pre
+    title: Pre-moderation workflow (default)
+    as_a: Member
+    i_want: Flagged messages to be reviewed before delivery
+    so_that: Inappropriate content is prevented from reaching recipients
+    acceptance_criteria:
+      - When I send message with flagged content, it shows "Under Review" status
+      - Message is NOT delivered to recipient
+      - Thread lastMessageAt is NOT updated (thread doesn't move to top for recipient)
+      - All subsequent messages in same thread are queued (to preserve order)
+      - I see "Message under review" indicator in chat
+      - When admin approves, message delivers and queued messages are processed
+      - When admin rejects, message is not delivered and I receive warning
+    priority: P0
+    dependencies: [msg-moderation-pattern]
+    
+  - id: msg-moderation-post
+    title: Post-moderation workflow (admin configurable)
+    as_a: Member
+    i_want: Messages to be delivered immediately but reviewed after
+    so_that: Conversations flow naturally with admin oversight
+    acceptance_criteria:
+      - When admin enables post-moderation, flagged messages are delivered
+      - Message shows "Sent" status to me
+      - Message appears to recipient immediately
+      - Thread lastMessageAt is updated
+      - Message is marked for admin review
+      - Admin can view flagged messages and send warnings
+      - Repeat offenders can be suspended
+    priority: P1
+    dependencies: [msg-moderation-pattern]
+    
+  - id: msg-moderation-config
+    title: Admin configurable moderation settings
+    as_a: Administrator
+    i_want: To configure moderation type and workflow
+    so_that: I can adapt moderation strategy as platform grows
+    acceptance_criteria:
+      - Settings page at /admin/moderation/settings exists
+      - I can choose moderation type: Pattern Recognition or AI/NLP
+      - AI/NLP option is visible but disabled with "Coming Soon" label
+      - I can choose workflow: Pre-moderation or Post-moderation
+      - Settings are saved to database
+      - New messages use current settings
+      - Settings page shows current active configuration
+      - Settings page shows count of pending messages
+    priority: P1
+    dependencies: [msg-moderation-pre, msg-moderation-post]
+    
+  # ===== Admin Moderation Interface =====
+  
+  - id: msg-admin-review-queue
+    title: Admin moderation dashboard
+    as_a: Administrator
+    i_want: To review flagged messages
+    so_that: I can approve appropriate content and reject violations
+    acceptance_criteria:
+      - Dashboard at /admin/moderation shows pending messages
+      - Each flagged message shows full thread context (last 5 messages)
+      - FlaggedReason is displayed (e.g., "Profanity detected: [word]")
+      - Timestamp and participant names are shown
+      - I can filter by Pending/Approved/Rejected status
+      - Messages are sorted by oldest first (FIFO review)
+    priority: P0
+    dependencies: [msg-moderation-pre]
+    
+  - id: msg-admin-approve
+    title: Admin approves flagged message
+    as_a: Administrator
+    i_want: To approve false-positive flagged messages
+    so_that: Clean messages are delivered to recipients
+    acceptance_criteria:
+      - I click "Approve" button on flagged message
+      - Message moderationStatus changes to APPROVED
+      - Message is delivered to recipient
+      - Thread lastMessageAt is updated
+      - Subsequent queued messages in thread are re-evaluated
+      - Clean queued messages are approved automatically
+      - Flagged queued messages remain pending for review
+      - Message disappears from pending queue
+    priority: P0
+    dependencies: [msg-admin-review-queue]
+    
+  - id: msg-admin-reject
+    title: Admin rejects violating message
+    as_a: Administrator
+    i_want: To reject messages that violate guidelines
+    so_that: Inappropriate content is blocked
+    acceptance_criteria:
+      - I click "Reject" or "Reject + Warn" button
+      - Message moderationStatus changes to REJECTED
+      - Message is NOT delivered to recipient
+      - If "Reject + Warn", system sends warning notification to sender
+      - Warning message is customizable
+      - Other queued messages in thread are released (if clean)
+      - Repeat violations can trigger account suspension
+      - Message disappears from pending queue
+    priority: P0
+    dependencies: [msg-admin-review-queue]
+    
+  # ===== Messaging UI/UX =====
+  
+  - id: msg-inbox-list
+    title: Conversation inbox list
+    as_a: Member
+    i_want: To see all my conversations in one place
+    so_that: I can manage my communication
+    acceptance_criteria:
+      - Inbox page at /messages shows all my threads
+      - Each thread shows participant name/alias, thumbnail
+      - Each thread shows last message preview (truncated)
+      - Each thread shows timestamp (relative, e.g., "2h ago")
+      - Unread threads show badge with count
+      - Threads are sorted by lastMessageAt (newest first)
+      - I can filter: All / Unread / Favorited
+      - Empty state shows "No conversations yet" with CTA
+    priority: P0
+    dependencies: []
+    
+  - id: msg-chat-view
+    title: Conversation chat interface
+    as_a: Member
+    i_want: To view message history and send new messages
+    so_that: I can communicate with potential partners
+    acceptance_criteria:
+      - Clicking thread opens chat view
+      - Messages displayed in bubble format (me: right, them: left)
+      - Messages show timestamp
+      - Messages show status: Sent, Under Review, Delivered
+      - Chat auto-scrolls to latest message
+      - Text input field at bottom
+      - Send button next to input
+      - I can type and press Enter to send
+      - New messages appear immediately after sending
+      - Halal communication reminder banner at top
+    priority: P0
+    dependencies: [msg-inbox-list]
+    
+  - id: msg-new-conversation-modal
+    title: Start new conversation modal
+    as_a: Premium member
+    i_want: To easily start conversations with matches
+    so_that: I can initiate communication
+    acceptance_criteria:
+      - "Start New Conversation" button on inbox page
+      - Clicking opens modal overlay
+      - Modal shows search input
+      - Modal shows suggested members from favorites
+      - I can search by name
+      - Search results show profile thumbnail, alias, age, location
+      - Clicking "Start Conversation" creates thread
+      - Modal closes and I'm navigated to new chat
+      - If I'm free member, shows subscription error with upgrade CTA
+    priority: P1
+    dependencies: [msg-initiate-as-premium]
+    
+  # ===== Message Thread Management =====
+  
+  - id: msg-thread-creation
+    title: Message thread creation
+    as_a: System
+    i_want: To create message threads between users
+    so_that: Conversations are properly tracked
+    acceptance_criteria:
+      - When user initiates conversation, check if thread exists
+      - Thread lookup is bidirectional (participantA↔participantB or participantB↔participantA)
+      - If thread exists, open existing thread
+      - If thread doesn't exist, create new MessageThread
+      - Thread records both participant IDs
+      - Thread tracks lastMessageAt timestamp
+      - Thread tracks isBlocked status (default false)
+    priority: P0
+    dependencies: []
+    
+  - id: msg-thread-queuing
+    title: Message queuing for moderation order
+    as_a: System
+    i_want: To queue messages when thread has pending content
+    so_that: Message chronological order is preserved
+    acceptance_criteria:
+      - When sending message, check if thread has pending messages
+      - If PRE_MODERATION active and pending messages exist, queue new message
+      - Queued message gets moderationStatus=PENDING even if content is clean
+      - When admin approves first pending message, subsequent messages are re-evaluated
+      - Clean messages in queue are auto-approved
+      - Flagged messages in queue remain pending
+      - Messages are released in chronological order
+    priority: P0
+    dependencies: [msg-moderation-pre, msg-admin-approve]
+    
+  # ===== Testing & Quality =====
+  
+  - id: msg-test-coverage
+    title: Comprehensive unit test coverage
+    as_a: Developer
+    i_want: Unit tests for all messaging functionality
+    so_that: Code is reliable and regression-free
+    acceptance_criteria:
+      - tests/actions/messages.test.ts covers all server actions
+      - Test subscription validation (both free = error, one premium = success)
+      - Test thread creation and reuse
+      - Test content moderation (flagged vs clean)
+      - Test message queuing logic
+      - Test unread count calculation
+      - tests/actions/admin/moderation.test.ts covers admin actions
+      - Test approve/reject flows
+      - Test queued message release
+      - tests/api/messages/events.route.test.ts tests SSE endpoint
+      - All tests use proper mocking (Prisma, NextAuth)
+      - Test coverage > 80% for messaging code
+    priority: P0
+    dependencies: []
+
+technical_notes:
+  - SSE polling interval: 5 seconds (configurable via environment variable)
+  - Max message length: 2000 characters
+  - Message thread pagination: 50 messages per page (load more older)
+  - Moderation keyword lists stored in src/lib/moderation/shariah-patterns.ts
+  - Admin-only routes protected by middleware checking user.role === 'ADMIN'
+  - Phase 2 excludes file attachments, typing indicators, read receipts (future enhancements)
+
+database_changes:
+  - Message model: Add isFlagged (boolean), flaggedReason (string), moderationStatus (enum)
+  - Add index on Message.moderationStatus for admin queries
+  - Consider ModerationConfig table for storing admin settings (or use JSON in Config table)
+
+future_enhancements:
+  - Read receipts and "seen by" indicators
+  - Typing indicators ("User is typing...")
+  - Message editing/deletion (with time limits)
+  - File and image attachments with moderation
+  - Advanced AI-based content moderation (GPT integration)
+  - Email notifications for new messages
+  - Block/mute UI (schema exists, needs interface)
+  - Message search and filtering within conversations
+  - Wali visibility mode (guardian can view daughter's conversations)
+  - Trust score system for adaptive moderation
+  - SSE connection sharing across browser tabs
+  - Prisma Pulse for real-time DB changes (scale optimization)
+  - Conversation thread limits (Islamic advisor guidance)
+  - Microservice architecture for messaging (scalability)

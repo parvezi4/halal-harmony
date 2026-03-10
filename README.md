@@ -117,11 +117,26 @@ npm run typecheck         # Run TypeScript type checking
 
 ### Test coverage (Phase 1)
 
-Currently tested:
+**Phase 1 - Core Features:**
 
 - ✅ **Register API** (`/api/auth/register`) - 7 test cases covering success, validation, duplicate users, and error handling
 - ✅ **Favorites API** (`/api/favorites`) - 9 test cases covering GET/POST routes, authorization, validation, and error handling
 - ✅ **Favorites Actions** (`/app/actions/favorites`) - 5 test cases covering toggle logic, business rules, and data filtering
+
+**Phase 2 - Messaging:**
+
+- ✅ **Messaging Actions** (`/app/actions/messages`) - 15 test cases covering:
+  - Thread initiation with subscription validation
+  - Gender validation (preventing same-gender conversations)
+  - Content moderation (flagged vs clean messages)
+  - Message queuing (preserves chronological order during review)
+  - Thread listing and unread count
+- ✅ **Admin Moderation Actions** (`/app/actions/admin/moderation`) - 11 test cases covering:
+  - Authorization checks (admin-only access)
+  - Pending message queue retrieval
+  - Message approval with auto-release of queued messages
+  - Message rejection with warning notifications
+  - Moderation statistics
 
 ### Pre-push quality gate
 
@@ -199,12 +214,34 @@ After running `npm run prisma:seed`, use these credentials to test the applicati
 | `zainab@example.com` | `Password123!` | ✅ Complete   | Female, annulled, **5 photos (max limit)**    |
 | `sara@example.com`   | `Password123!` | ✅ Complete   | Female, **age 14 (minimum age)**, no photos   |
 
+**Admin Access:**
+
+| Email               | Password       | Role    | Notes                             |
+| ------------------- | -------------- | ------- | --------------------------------- |
+| `admin@example.com` | `Password123!` | `ADMIN` | Access to moderation queue /admin |
+
 **Onboarding Testing:**
 
 - Use **Aisha** to test the full female onboarding flow (5 steps including Wali information)
 - Use **Yusuf** to test the male onboarding flow (4 steps, no Wali info required)
 
 **Other Features:**
+**Messaging Features (Phase 2):**
+
+- **Subscription Gating**: Ahmed and Fatima have premium subscriptions and can initiate conversations
+- **Send Message from Profile**: "Send Message" button available on member profile view (`/search/<id>/`) with subscription validation
+  - If user has active subscription: creates thread and navigates to messages
+  - If no subscription: displays error with link to `/pricing` page
+- **Real-time Updates**: Messages appear instantly via Server-Sent Events (SSE)
+- **Pagination**: Chat loads latest 10 messages initially, then 5 older messages on upscroll for efficient browsing
+- **Content Moderation**: All messages pass through pattern-based filter for Shariah compliance
+  - Profanity detection (English & Arabic)
+  - Sexual content blocking
+  - Contact info sharing prevention (phone numbers, emails, social media)
+  - Financial solicitation blocking
+- **Admin Moderation**: Access `/admin/moderation` to review flagged messages
+- **Unread Counter**: Real-time badge updates on Messages link
+- **Female-only Reminders**: Wali involvement reminder appears for female users only in chat interface
 
 - Ahmed and Fatima have sample message history for testing messaging
 - Zainab has the maximum number of photos (5) for testing photo limits

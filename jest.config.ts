@@ -22,6 +22,7 @@ const config: Config = {
     '!**/*.stories.{js,jsx,ts,tsx}',
     '!**/node_modules/**',
   ],
+  transformIgnorePatterns: ['node_modules/(?!(bad-words|badwords-list)/)'],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
