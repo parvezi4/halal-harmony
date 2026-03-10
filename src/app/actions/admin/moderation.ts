@@ -1,38 +1,17 @@
 'use server';
 
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { filterContent } from '@/lib/moderation/contentFilter';
-
-/**
- * Verify user is an admin
- */
-async function verifyAdmin() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return { isAdmin: false, session: null };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-
-  return {
-    isAdmin: user?.role === 'ADMIN',
-    session,
-  };
-}
+import { verifyAdminOrModerator } from '@/lib/admin/access';
+import { ADMIN_CAPABILITIES } from '@/lib/admin/capabilities';
 
 /**
  * Get all pending messages for admin review
  */
 export async function getPendingMessages() {
-  const { isAdmin } = await verifyAdmin();
+  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
 
-  if (!isAdmin) {
+  if (!authorized) {
     return {
       success: false,
       errors: { general: 'Not authorized' },
@@ -156,9 +135,9 @@ export async function getPendingMessages() {
  * Releases the message and re-evaluates queued messages in the thread
  */
 export async function approveMessage(messageId: string) {
-  const { isAdmin } = await verifyAdmin();
+  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
 
-  if (!isAdmin) {
+  if (!authorized) {
     return {
       success: false,
       errors: { general: 'Not authorized' },
@@ -265,9 +244,9 @@ export async function approveMessage(messageId: string) {
  * Reject a message and optionally send warning to sender
  */
 export async function rejectMessage(messageId: string, warningMessage?: string) {
-  const { isAdmin } = await verifyAdmin();
+  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
 
-  if (!isAdmin) {
+  if (!authorized) {
     return {
       success: false,
       errors: { general: 'Not authorized' },
@@ -375,9 +354,9 @@ export async function rejectMessage(messageId: string, warningMessage?: string) 
  * Get moderation statistics for admin dashboard
  */
 export async function getModerationStats() {
-  const { isAdmin } = await verifyAdmin();
+  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
 
-  if (!isAdmin) {
+  if (!authorized) {
     return {
       success: false,
       errors: { general: 'Not authorized' },

@@ -1,6 +1,6 @@
-import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 import { filterContent } from '@/lib/moderation/contentFilter';
+import { verifyAdminOrModerator } from '@/lib/admin/access';
 import {
   getPendingMessages,
   approveMessage,
@@ -9,7 +9,6 @@ import {
 } from '@/app/actions/admin/moderation';
 
 // Mock dependencies
-jest.mock('next-auth/next');
 jest.mock('bad-words', () => ({
   __esModule: true,
   Filter: jest.fn().mockImplementation(() => ({
@@ -19,9 +18,6 @@ jest.mock('bad-words', () => ({
 }));
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    user: {
-      findUnique: jest.fn(),
-    },
     message: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
@@ -34,9 +30,12 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 jest.mock('@/lib/moderation/contentFilter');
+jest.mock('@/lib/admin/access', () => ({
+  verifyAdminOrModerator: jest.fn(),
+}));
 
-const mockGetServerSession = getServerSession as jest.Mock;
 const mockFilterContent = filterContent as jest.Mock;
+const mockVerifyAdminOrModerator = verifyAdminOrModerator as jest.Mock;
 
 describe('Admin Moderation Actions', () => {
   beforeEach(() => {
@@ -45,7 +44,11 @@ describe('Admin Moderation Actions', () => {
 
   describe('Authorization', () => {
     it('should return error if not authenticated', async () => {
-      mockGetServerSession.mockResolvedValue(null);
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: false,
+        userId: null,
+        role: null,
+      });
 
       const result = await getPendingMessages();
 
@@ -54,10 +57,9 @@ describe('Admin Moderation Actions', () => {
     });
 
     it('should return error if user is not admin', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'user123' },
-      });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: false,
+        userId: 'user123',
         role: 'MEMBER',
       });
 
@@ -66,14 +68,26 @@ describe('Admin Moderation Actions', () => {
       expect(result.success).toBe(false);
       expect(result.errors?.general).toBe('Not authorized');
     });
+    it('should allow moderator with moderation capability', async () => {
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: true,
+        userId: 'mod123',
+        role: 'MODERATOR',
+      });
+      (prisma.message.findMany as jest.Mock).mockResolvedValue([]);
+
+      const result = await getPendingMessages();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
   });
 
   describe('getPendingMessages', () => {
     beforeEach(() => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'admin123' },
-      });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: true,
+        userId: 'admin123',
         role: 'ADMIN',
       });
     });
@@ -130,10 +144,9 @@ describe('Admin Moderation Actions', () => {
 
   describe('approveMessage', () => {
     beforeEach(() => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'admin123' },
-      });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: true,
+        userId: 'admin123',
         role: 'ADMIN',
       });
     });
@@ -263,10 +276,9 @@ describe('Admin Moderation Actions', () => {
 
   describe('rejectMessage', () => {
     beforeEach(() => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'admin123' },
-      });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: true,
+        userId: 'admin123',
         role: 'ADMIN',
       });
     });
@@ -321,10 +333,9 @@ describe('Admin Moderation Actions', () => {
 
   describe('getModerationStats', () => {
     beforeEach(() => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'admin123' },
-      });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: true,
+        userId: 'admin123',
         role: 'ADMIN',
       });
     });

@@ -1,29 +1,20 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { getServerSession } from 'next-auth/next';
-import type { Session } from 'next-auth';
-import { authOptions } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { verifyAdminOrModerator } from '@/lib/admin/access';
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const session = (await getServerSession(authOptions)) as
-    | (Session & { user: { id: string; role: string } })
-    | null;
+  const access = await verifyAdminOrModerator();
 
-  if (!session?.user) {
+  if (!access.userId) {
     redirect('/auth/login');
   }
 
-  // Verify admin role
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-
-  if (!user || user.role !== 'ADMIN') {
+  if (!access.authorized) {
     redirect('/dashboard');
   }
+
+  const isAdmin = access.role === 'ADMIN';
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-50">
@@ -39,12 +30,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link href="/admin/moderation" className="text-slate-200 hover:text-accent-200">
               Moderation Queue
             </Link>
-            <Link
-              href="/admin/moderation/settings"
-              className="text-slate-200 hover:text-accent-200"
-            >
-              Settings
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin/moderation/settings"
+                className="text-slate-200 hover:text-accent-200"
+              >
+                Settings
+              </Link>
+            )}
+            {!isAdmin && (
+              <span className="rounded border border-slate-700 px-2 py-1 text-[11px] uppercase tracking-wide text-slate-400">
+                Moderator View
+              </span>
+            )}
             <div className="ml-2 border-l border-slate-700 pl-4">
               <Link href="/dashboard" className="text-slate-400 hover:text-slate-200">
                 ← Back to Site
