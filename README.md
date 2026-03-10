@@ -204,6 +204,8 @@ For more details, see the [API Testing section in PLAN.md](docs/PLAN.md).
 
 After running `npm run prisma:seed`, use these credentials to test the application:
 
+If your local database was created before moderator support was added, run `npx prisma db push` once before testing admin/moderator login so the `MODERATOR` enum value exists in the database.
+
 | Email                | Password       | Status        | Notes                                         |
 | -------------------- | -------------- | ------------- | --------------------------------------------- |
 | `ahmed@example.com`  | `Password123!` | ✅ Complete   | Male, married, 2 photos, premium subscription |
@@ -220,6 +222,10 @@ After running `npm run prisma:seed`, use these credentials to test the applicati
 | ------------------- | -------------- | ------- | --------------------------------- |
 | `admin@example.com` | `Password123!` | `ADMIN` | Access to moderation queue /admin |
 | `moderator@example.com` | `Password123!` | `MODERATOR` | Access based on admin-configurable permissions |
+
+- Regular members must use `/auth/login`.
+- Admins and moderators must use `/admin/login`.
+- If you use the wrong portal, the app blocks login and tells you which route to use.
 
 **Onboarding Testing:**
 

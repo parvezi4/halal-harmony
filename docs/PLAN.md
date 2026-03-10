@@ -78,6 +78,12 @@ isProject: false
   - Favorites page reuses search-style result cards and supports direct removal.
   - Profile detail back link is context-aware (`Back to favorites` when opened from favorites).
 - Phase 1 API and action testing coverage has been expanded beyond register-only.
+- Authentication now uses split login portals:
+  - Members sign in at `/auth/login`.
+  - Admins and moderators sign in at `/admin/login`.
+  - Wrong-portal logins are rejected with corrective guidance instead of creating a session.
+- Admin login route is isolated from the protected admin layout tree to avoid redirect loops.
+- Admin shell now uses an explicit logout action instead of a back-to-site link.
 - Local hooks are active:
   - Pre-commit: staged lint checks.
   - Pre-push: typecheck and API tests.

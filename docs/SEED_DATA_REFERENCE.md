@@ -218,6 +218,9 @@ Comprehensive test users covering all onboarding scenarios and edge cases.
 ## Additional Notes
 
 - All users have password: `Password123!`
+- Admin test user: `admin@example.com` / `Password123!`
+- Moderator test user: `moderator@example.com` / `Password123!`
+- If a local database predates moderator-role support, run `npx prisma db push` once so the `MODERATOR` enum value exists before testing moderator login.
 - Ahmed and Fatima have active Premium subscriptions
 - Ahmed and Fatima have a message thread with 2 messages
 - All photos use WebP format (180KB each)
