@@ -39,6 +39,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link href="/admin/subscriptions" className="text-slate-200 hover:text-accent-200">
               Subscriptions
             </Link>
+            <Link href="/admin/reports" className="text-slate-200 hover:text-accent-200">
+              Reports
+            </Link>
+            <Link href="/admin/flagged" className="text-slate-200 hover:text-accent-200">
+              Flagged Users
+            </Link>
             {isAdmin && (
               <Link
                 href="/admin/moderation/settings"
