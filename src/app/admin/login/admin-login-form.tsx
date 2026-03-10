@@ -15,26 +15,51 @@ export function AdminLoginForm() {
     setError(null);
     setLoading(true);
 
-    const res = await signIn('credentials', {
-      email: form.email,
-      password: form.password,
-      redirect: false,
-    });
+    try {
+      // First, validate credentials and role via our admin login endpoint
+      const validationRes = await fetch('/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
 
-    setLoading(false);
+      const validationData = await validationRes.json();
 
-    if (res?.error) {
-      setError('Invalid email or password');
-      return;
+      if (!validationRes.ok || !validationData.success) {
+        setError(validationData.error || 'Login validation failed');
+        setLoading(false);
+        return;
+      }
+
+      // If validation passed, use NextAuth to create the session
+      const authRes = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      setLoading(false);
+
+      if (authRes?.error) {
+        setError('Failed to establish session');
+        return;
+      }
+
+      if (!authRes?.ok) {
+        setError('Login failed. Please try again.');
+        return;
+      }
+
+      // Redirect to admin dashboard on successful login
+      router.push('/admin');
+    } catch (err) {
+      setLoading(false);
+      console.error('Login error:', err);
+      setError('An unexpected error occurred');
     }
-
-    if (!res?.ok) {
-      setError('Login failed. Please try again.');
-      return;
-    }
-
-    // Redirect to admin dashboard on successful login
-    router.push('/admin');
   }
 
   return (
@@ -58,6 +83,7 @@ export function AdminLoginForm() {
               className="h-9 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 text-xs text-slate-100 placeholder:text-slate-500 focus:border-accent-400 focus:outline-none"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              disabled={loading}
             />
           </div>
 
@@ -70,6 +96,7 @@ export function AdminLoginForm() {
               className="h-9 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 text-xs text-slate-100 placeholder:text-slate-500 focus:border-accent-400 focus:outline-none"
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              disabled={loading}
             />
           </div>
 

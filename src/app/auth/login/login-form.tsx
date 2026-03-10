@@ -15,17 +15,51 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const res = await signIn('credentials', {
-      email: form.email,
-      password: form.password,
-      redirect: false,
-    });
-    setLoading(false);
-    if (res?.error) {
-      setError('Invalid email or password');
-      return;
+
+    try {
+      // First, validate credentials and role via our user login endpoint
+      const validationRes = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const validationData = await validationRes.json();
+
+      if (!validationRes.ok || !validationData.success) {
+        setError(validationData.error || 'Login validation failed');
+        setLoading(false);
+        return;
+      }
+
+      // If validation passed, use NextAuth to create the session
+      const authRes = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      setLoading(false);
+
+      if (authRes?.error) {
+        setError('Failed to establish session');
+        return;
+      }
+
+      if (!authRes?.ok) {
+        setError('Login failed. Please try again.');
+        return;
+      }
+
+      router.push('/dashboard');
+    } catch (err) {
+      setLoading(false);
+      console.error('Login error:', err);
+      setError('An unexpected error occurred');
     }
-    router.push('/dashboard');
   }
 
   const registered = searchParams.get('registered') === '1';
