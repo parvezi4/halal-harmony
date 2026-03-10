@@ -16,8 +16,8 @@ export function AdminLoginForm() {
     setLoading(true);
 
     try {
-      // First, validate credentials and role via our admin login endpoint
-      const validationRes = await fetch('/admin/login', {
+      // First, validate credentials and role via our admin login API
+      const validationRes = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -17,8 +17,8 @@ export function LoginForm() {
     setLoading(true);
 
     try {
-      // First, validate credentials and role via our user login endpoint
-      const validationRes = await fetch('/auth/login', {
+      // First, validate credentials and role via our user login API
+      const validationRes = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
