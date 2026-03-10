@@ -33,6 +33,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link href="/admin/moderation/profiles" className="text-slate-200 hover:text-accent-200">
               Profile Queue
             </Link>
+            <Link href="/admin/moderation/photos" className="text-slate-200 hover:text-accent-200">
+              Photo Queue
+            </Link>
             <Link href="/admin/subscriptions" className="text-slate-200 hover:text-accent-200">
               Subscriptions
             </Link>
