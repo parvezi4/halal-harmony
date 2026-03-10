@@ -73,7 +73,7 @@
     { "id": "label-dashboard", "type": "text", "x": 460, "y": 28, "width": 200, "height": 24, "text": "Dashboard", "fontSize": 20, "fontFamily": 1, "textAlign": "left", "verticalAlign": "top", "baseline": 20 },
     { "id": "label-dashboard-greeting", "type": "text", "x": 470, "y": 100, "width": 260, "height": 24, "text": "Greeting + member since", "fontSize": 14, "fontFamily": 1, "textAlign": "left", "verticalAlign": "top", "baseline": 14 },
     { "id": "label-dashboard-cards", "type": "text", "x": 470, "y": 170, "width": 280, "height": 40, "text": "Summary cards: profile, messages, matches", "fontSize": 14, "fontFamily": 1, "textAlign": "left", "verticalAlign": "top", "baseline": 14 },
-    { "id": "label-dashboard-actions", "type": "text", "x": 470, "y": 450, "width": 260, "height": 40, "text": "Quick actions: edit, browse, favourites, subscription", "fontSize": 14, "fontFamily": 1, "textAlign": "left", "verticalAlign": "top", "baseline": 14 },
+    { "id": "label-dashboard-actions", "type": "text", "x": 470, "y": 450, "width": 260, "height": 40, "text": "Quick actions: edit, browse, favorites, subscription", "fontSize": 14, "fontFamily": 1, "textAlign": "left", "verticalAlign": "top", "baseline": 14 },
 
     { "id": "label-chats", "type": "text", "x": 60, "y": 788, "width": 200, "height": 24, "text": "Chats (Inbox)", "fontSize": 20, "fontFamily": 1, "textAlign": "left", "verticalAlign": "top", "baseline": 20 },
     { "id": "label-chats-toggle", "type": "text", "x": 255, "y": 852, "width": 110, "height": 20, "text": "Inactive / Enabled", "fontSize": 12, "fontFamily": 1, "textAlign": "left", "verticalAlign": "top", "baseline": 12 },

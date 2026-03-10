@@ -50,7 +50,7 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 
 - **Goals**
   - Provide quick overview of profile status, subscription, and messages.
-  - Fast access to search, edit profile, favourites, and plans.
+  - Fast access to search, edit profile, favorites, and plans.
 
 ```text
 ---------------------------------------------------------
@@ -78,7 +78,7 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 |   - Link: [ View matches ]                          |
 ---------------------------------------------------------
 | Quick actions row/buttons:                          |
-|  [ Edit profile ]  [ Start a search ]  [ Favourites ]|
+|  [ Edit profile ]  [ Start a search ]  [ Favorites ] |
 |  [ Manage subscription ]                            |
 ---------------------------------------------------------
 | Optional: Simple list of recent activity:           |
@@ -157,7 +157,7 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 | Action bar (respecting subscription rules):          |
 |  - If free user: [ Upgrade to contact ] (primary)    |
 |  - If paid:  [ Send message ]                        |
-|                  [ Add to favourites ♥ ]             |
+|                  [ Add to favorites ★ ]              |
 |  - Secondary: [ Report profile ]                     |
 ---------------------------------------------------------
 | Subtle note about wali involvement and guidelines.   |
@@ -200,7 +200,7 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 | RESULTS LIST (right / below)                         |
 |  Each result card:                                   |
 |   -------------------------------------------------  |
-   |  [Photo thumb / placeholder]   [♥] (favourite)    |
+  |  [Photo thumb / placeholder]   [★] (favorite)     |
 |   |  Alias, Age / Age range                         |
 |   |  City/Region, Country                           |
 |   |  1–2 Islamic markers (e.g. "Prays 5x", "Hijab") |
@@ -236,7 +236,7 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 |   Timestamp (e.g. "2h ago")    [Unread badge ●]     |
 ---------------------------------------------------------
 | Filter / tabs (optional MVP):                       |
-|  [ All ] [ Unread ] [ Favourited ]                  |
+|  [ All ] [ Unread ] [ Favorited ]                   |
 ---------------------------------------------------------
 ```
 

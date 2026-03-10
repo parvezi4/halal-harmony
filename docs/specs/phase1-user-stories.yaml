@@ -1,6 +1,6 @@
 phase: 1
 name: 'Core foundation: auth, onboarding, profile, basic search'
-last_updated: '2026-03-03'
+last_updated: '2026-03-10'
 
 epics:
   - id: auth
@@ -213,15 +213,15 @@ epics:
           - 'A reasonable per-user limit on number of saved searches is enforced.'
 
       - id: search-shortlist
-        title: 'Shortlist / favourites'
+        title: 'Shortlist / favorites'
         role: 'member'
         goal: 'add interesting profiles to a private shortlist'
         reason: 'so that I can easily revisit them later'
         acceptance_criteria:
-          - "From search results and profile views, users can toggle a 'favourite' or 'shortlist' action."
+          - "From search results and profile views, users can toggle a 'favorite' or 'shortlist' action."
           - 'Shortlisted profiles are stored per user and persisted in the database.'
-          - 'A favourites page or section lets users view all shortlisted profiles in a similar card layout to search results.'
-          - 'Removing a profile from favourites updates both the favourites view and any indicator on cards.'
+          - 'A favorites page or section lets users view all shortlisted profiles in a similar card layout to search results.'
+          - 'Removing a profile from favorites updates both the favorites view and any indicator on cards.'
           - 'Shortlisting is private in Phase 1; the other user is not notified.'
 
       - id: access-gating-free
@@ -242,13 +242,13 @@ epics:
         title: 'Basic member dashboard'
         role: 'logged_in_member'
         goal: 'land on a simple dashboard with my status and key actions'
-        reason: 'so that I can immediately continue my journey (complete profile, search, view favourites)'
+        reason: 'so that I can immediately continue my journey (complete profile, search, view favorites)'
         acceptance_criteria:
           - 'After login, users with incomplete profiles are redirected to onboarding; complete profiles go to the dashboard.'
           - "Dashboard shows a greeting with alias/name, profile completeness indicator, and a clear CTA to 'Complete profile' or 'Edit profile'."
           - 'Profile completeness percentage is calculated as: (completed_fields / total_fields) × 100%, where total_fields includes all mandatory (~12-15) and optional (~5) fields.'
           - 'Completeness progress bar displays the percentage and field count (e.g., "80% complete, 14/18 fields").'
-          - "Dashboard includes quick links to: search, favourites/shortlist, and a 'Subscription status' area (e.g. 'Free member', 'Premium member')."
+          - "Dashboard includes quick links to: search, favorites/shortlist, and a 'Subscription status' area (e.g. 'Free member', 'Premium member')."
           - 'Subscription badge shows status (free/premium/expired) with conditional "Upgrade" button for free tier.'
           - 'Messages card displays unread conversation and total active thread counts.'
           - 'Dashboard includes count of available profiles (opposite-gender, approved users available to view).'

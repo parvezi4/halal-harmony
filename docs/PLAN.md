@@ -1,6 +1,7 @@
 ---
 name: halal-matrimony-mvp
 overview: Design an MVP for a halal, web-based Muslim matrimonial platform with simple, responsive UI, global reach, and basic subscription and messaging features.
+last_updated: '2026-03-10'
 todos:
   - id: clarify-stack
     content: Confirm preferred tech stack (frontend framework, backend style, database) and hosting approach.
@@ -10,15 +11,27 @@ todos:
     status: completed
   - id: design-wireframes
     content: Create low-fidelity wireframes for landing, dashboard, profile, search, and messaging views, including onboarding wizard.
-    status: in-progress
+    status: completed
   - id: plan-payments
     content: Design subscription tiers and map them to Stripe plans for MVP.
     status: pending
   - id: setup-api-tests
-    content: Set up Jest with API tests for register route and pre-push quality gate (tests + lint + typecheck).
-    status: in-progress
+    content: Set up Jest with API tests for auth/search/dashboard/favorites routes and enforce local quality gates.
+    status: completed
 isProject: false
 ---
+
+### Implementation snapshot (as of 2026-03-10)
+
+- Favorites flow is implemented end-to-end:
+  - Toggle add/remove from search results and the favorites page.
+  - Star icon reflects state (outlined when not favorited, solid green when favorited).
+  - Favorites page reuses search-style result cards and supports direct removal.
+  - Profile detail back link is context-aware (`Back to favorites` when opened from favorites).
+- Phase 1 API and action testing coverage has been expanded beyond register-only.
+- Local hooks are active:
+  - Pre-commit: staged lint checks.
+  - Pre-push: typecheck and API tests.
 
 ### High-level goals
 
@@ -115,7 +128,7 @@ isProject: false
   - Ability to save a search as a named filter.
 - **Browse & shortlist**
   - View profile details from search results.
-  - Add/remove profiles from favourites/shortlist.
+  - Add/remove profiles from favorites/shortlist.
 
 #### 4. Messaging (within halal guidelines)
 
@@ -155,12 +168,12 @@ isProject: false
 #### 6. Dashboard & UX
 
 - **Member dashboard** (`/dashboard`)
-  - **Overview cards**: 
+  - **Overview cards**:
     - Profile completeness (with progress bar showing % and field counts: X/Y fields completed)
     - Subscription status (Free/Premium/Expired with conditional upgrade button)
     - Messages (unread conversations count, total active threads)
     - Profiles to explore (available opposite-gender profile count)
-  - **Quick action buttons**: Edit profile, Start search, Favourites, Manage subscription
+  - **Quick action buttons**: Edit profile, Start search, Favorites, Manage subscription
   - **Dynamic content**: All data fetched from database; greeting personalized with user's alias or name; member-since date from account creation
   - **API endpoint**: `GET /api/dashboard` (authenticated, returns dashboard data with completeness breakdown)
 - **Notifications (MVP-level)**
@@ -262,7 +275,7 @@ flowchart TD
   dashboard --> subscription[ManageSubscription]
 
   search --> viewProfile[ViewProfile]
-  viewProfile --> shortlist[AddToFavourites]
+  viewProfile --> shortlist[AddToFavorites]
   viewProfile --> subscribeIfNeeded[UpgradeToPaid]
   subscribeIfNeeded --> subscription
   subscription --> paidMember[PaidMember]
@@ -272,63 +285,65 @@ flowchart TD
   thread --> report[ReportOrBlock]
 ```
 
-### Phase 1 – API Testing & Quality Gates
+### Phase 1 – Testing & Quality Gates
 
-To ensure code quality and prevent regressions before pushing to `master`, establish a lightweight automated testing strategy focused on API routes with local pre-push enforcement.
+To prevent regressions before pushing to `master`, maintain lightweight local checks with route-level tests and hook-based enforcement.
 
 #### Objectives
 
-- Fast, deterministic API route handler tests using Jest with mocked dependencies (Prisma, bcrypt).
-- Local pre-push git hook enforcing: tests + lint + typecheck.
-- Keep execution time under 5-10 seconds for fast feedback.
-- Leverage Vercel's deploy-time build validation; defer GitHub Actions CI to Phase 2.
+- Fast, deterministic route handler and server action tests using Jest with mocked dependencies.
+- Local git hooks:
+  - Pre-commit: staged lint checks (`lint-staged`).
+  - Pre-push: `npm run typecheck` + `npm run test:api`.
+- Keep execution time low for fast developer feedback.
+- Use deploy-time validation in Vercel; defer GitHub Actions CI to Phase 2.
 
-#### Phase 1 Scope – Register Route Only
+#### Current Phase 1 Coverage
 
-**Test coverage for `app/api/auth/register/route.ts`**:
+**Route and action coverage currently includes:**
 
-1. **Success case**: Valid email and password → 200 with user object
-2. **Validation failure**: Missing or short password → 400 with error
-3. **Duplicate user**: Existing email → 400 with error
-4. **Unexpected error**: Prisma failure → 500 with error
+1. **Register API** (`/api/auth/register`) success/validation/duplicate/error paths
+2. **Favorites API** (`/api/favorites`) GET/POST auth, validation, and error paths
+3. **Dashboard API** (`/api/dashboard`) data shaping and access checks
+4. **Search APIs** list/detail route behavior and filtering checks
+5. **Profile photos API** validation and constraints
+6. **Favorites server actions** toggle logic, business rules, and filtering
 
 **Mocking strategy**:
 
 - Mock `@/lib/prisma` client for database isolation
-- Mock `bcryptjs` for deterministic, fast password hashing
+- Mock auth/session and utility dependencies as needed (`next-auth`, `@/auth`, `bcryptjs`)
 - Use synthetic `Request` objects (no real HTTP server)
 
-#### Implementation Steps
+#### Enforcement and Workflow
 
-1. **Install Jest tooling**:
-   - Add `jest`, `@types/jest`, `ts-jest`, `husky` to devDependencies
-   - Add scripts: `test`, `test:watch`, `test:api`, `typecheck` (`tsc --noEmit`)
+1. **Run staged lint at commit time**:
 
-2. **Configure Jest**:
-   - Create `jest.config.ts` with Node environment, `ts-jest` transform, and `@/*` path alias mapping
-   - Create `jest.setup.ts` for shared env setup (`NEXTAUTH_URL`, etc.) and mock reset hooks
+- `.husky/pre-commit` runs `npm run precommit:staged`
+- `lint-staged` runs ESLint autofix for staged JS/TS files
 
-3. **Write register route tests**:
-   - Create `tests/api/auth/register.route.test.ts` with 4 test cases (success, validation, duplicate, error)
-   - Mock Prisma client methods (`findUnique`, `create`) and bcrypt hash function
-   - Validate response status codes and JSON payloads
+2. **Run core checks at push time**:
 
-4. **Add pre-push hook**:
-   - Install and initialize Husky: `npx husky init`
-   - Create `.husky/pre-push` running: `npm run test:api && npm run lint && npm run typecheck`
-   - Exclude `build` from pre-push for speed (Vercel validates builds on deploy)
+- `.husky/pre-push` runs `npm run typecheck` and `npm run test:api` in parallel
 
-5. **Document testing workflow**:
-   - Add testing section to README.md with commands, pre-push behavior, and emergency bypass instructions
+3. **Keep test suites focused and deterministic**:
+
+- API route tests under `tests/api/`
+- Server action tests under `tests/actions/`
+- Use mocked dependencies and direct handler/action invocation
+
+4. **Document test commands and hook behavior**:
+
+- Keep README testing section aligned with scripts and hook behavior
 
 #### Verification Checklist
 
-- [ ] `npm run test:api` passes in <5 seconds
-- [ ] `npm run lint` and `npm run typecheck` pass
-- [ ] Breaking a test blocks `git push` with clear error message
-- [ ] Introducing lint or type error blocks `git push`
-- [ ] Fixing all issues allows push to succeed
-- [ ] `npm run test:watch` provides fast feedback loop for development
+- [x] `npm run test:api` passes locally
+- [x] `npm run lint` and `npm run typecheck` pass locally
+- [x] Breaking API tests blocks `git push` via pre-push hook
+- [x] Type errors block `git push` via pre-push hook
+- [x] Staged lint checks run during commit via pre-commit hook
+- [x] `npm run test:watch` available for fast local feedback
 
 #### Phase 2 – Deferred Items
 
@@ -339,7 +354,7 @@ To ensure code quality and prevent regressions before pushing to `master`, estab
 #### Design Decisions
 
 - **Test runner**: Jest (mature ecosystem, good TypeScript support)
-- **Pre-push gates**: API tests + lint + typecheck only (no build for speed)
+- **Pre-push gates**: API tests + typecheck only (no build for speed)
 - **Coverage depth**: Happy path + key failure modes (not exhaustive edge cases in Phase 1)
 - **Mocking approach**: Full isolation via mocked Prisma/bcrypt for speed and determinism
 - **Vercel integration**: Optional; Vercel's default build validation catches build failures, tests can be added later if needed
