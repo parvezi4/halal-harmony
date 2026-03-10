@@ -122,9 +122,9 @@ describe('Admin Moderation Actions', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].content).toBe('Flagged content');
-      expect(result.data[0].flaggedReason).toBe('Profanity detected');
-      expect(result.data[0].thread.participants).toHaveLength(2);
+      expect(result.data?.[0]?.content).toBe('Flagged content');
+      expect(result.data?.[0]?.flaggedReason).toBe('Profanity detected');
+      expect(result.data?.[0]?.thread.participants).toHaveLength(2);
     });
   });
 

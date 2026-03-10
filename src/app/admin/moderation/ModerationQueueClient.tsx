@@ -12,7 +12,7 @@ interface PendingMessage {
     id: string;
     email: string;
     alias: string;
-    fullName: string | null;
+    fullName: string | null | undefined;
   };
   thread: {
     id: string;

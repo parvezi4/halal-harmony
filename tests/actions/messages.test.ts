@@ -337,9 +337,9 @@ describe('Messaging Server Actions', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].otherParticipant.alias).toBe('OtherUser');
-      expect(result.data[0].unreadCount).toBe(2);
-      expect(result.data[0].lastMessage?.content).toContain('Last message');
+      expect(result.data?.[0]?.otherParticipant.alias).toBe('OtherUser');
+      expect(result.data?.[0]?.unreadCount).toBe(2);
+      expect(result.data?.[0]?.lastMessage?.content).toContain('Last message');
     });
   });
 

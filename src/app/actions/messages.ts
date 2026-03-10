@@ -89,7 +89,7 @@ export async function getThreads() {
     // Format threads for frontend
     const formattedThreads = threads.map((thread) => {
       const otherParticipant =
-        thread.participantAId === session.user.id ? thread.participantB : thread.participantA;
+        thread.participantAId === session.user?.id ? thread.participantB : thread.participantA;
 
       const lastMessage = thread.messages[0];
 
@@ -105,7 +105,7 @@ export async function getThreads() {
           ? {
               content: lastMessage.content.substring(0, 100), // Truncate for preview
               createdAt: lastMessage.createdAt.toISOString(),
-              isFromMe: lastMessage.senderId === session.user.id,
+              isFromMe: lastMessage.senderId === session.user?.id,
             }
           : null,
         unreadCount: thread._count.messages,
@@ -231,7 +231,7 @@ export async function getThreadMessages(
       id: msg.id,
       content: msg.content,
       createdAt: msg.createdAt.toISOString(),
-      isFromMe: msg.senderId === session.user.id,
+      isFromMe: msg.senderId === session.user?.id,
       isRead: msg.isRead,
       senderAlias: msg.sender.profile?.alias || 'Unknown',
       moderationStatus: msg.moderationStatus,
