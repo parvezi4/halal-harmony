@@ -26,11 +26,20 @@ model User {
   favorites      Favorite[]      @relation("UserFavorites")
   favoritedBy    Favorite[]      @relation("UserFavoritedBy")
   profileViews   ProfileView[]   @relation("ViewerProfileViews")
+  moderationAuditLogs       ModerationAuditLog[]      @relation("ModerationActor")
+  moderationConfigUpdates   ModeratorPermissionConfig[] @relation("PermissionConfigUpdatedBy")
 }
 
 enum UserRole {
   MEMBER
   ADMIN
+  MODERATOR
+}
+
+enum RiskLabel {
+  GREEN
+  AMBER
+  RED
 }
 
 model Profile {
@@ -92,11 +101,43 @@ model Profile {
   photosVisibleTo   PhotoVisibility @default(SUBSCRIBERS_ONLY)
 
   status            ProfileStatus    @default(PENDING_REVIEW)
+  riskLabel         RiskLabel        @default(GREEN)
+  riskNotes         String?
+  riskLabeledAt     DateTime?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
   photos            Photo[]
   viewedBy          ProfileView[]
+}
+
+model ModeratorPermissionConfig {
+  id                      String   @id @default(cuid())
+  canModerateMessages     Boolean  @default(true)
+  canVerifyProfiles       Boolean  @default(true)
+  canVerifyPhotos         Boolean  @default(true)
+  canInspectSubscriptions Boolean  @default(true)
+  canManageReports        Boolean  @default(true)
+  canUpdateRiskLabels     Boolean  @default(true)
+  updatedById             String?
+  updatedBy               User?    @relation("PermissionConfigUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model ModerationAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation("ModerationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  action     String
+  targetType String
+  targetId   String
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
 }
 
 enum Gender {

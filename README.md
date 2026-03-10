@@ -219,6 +219,7 @@ After running `npm run prisma:seed`, use these credentials to test the applicati
 | Email               | Password       | Role    | Notes                             |
 | ------------------- | -------------- | ------- | --------------------------------- |
 | `admin@example.com` | `Password123!` | `ADMIN` | Access to moderation queue /admin |
+| `moderator@example.com` | `Password123!` | `MODERATOR` | Access based on admin-configurable permissions |
 
 **Onboarding Testing:**
 

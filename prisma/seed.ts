@@ -9,6 +9,8 @@ const DEFAULT_PHOTO_BYTES = 180_000;
 async function main() {
   console.log('Seeding database with test users...');
 
+  await prisma.moderationAuditLog.deleteMany();
+  await prisma.moderatorPermissionConfig.deleteMany();
   await prisma.message.deleteMany();
   await prisma.messageThread.deleteMany();
   await prisma.report.deleteMany();
@@ -31,6 +33,36 @@ async function main() {
   });
 
   const passwordHash = await bcryptjs.hash(DEFAULT_PASSWORD, 10);
+
+  const adminUser = await prisma.user.create({
+    data: {
+      email: 'admin@example.com',
+      passwordHash,
+      role: 'ADMIN',
+      emailVerified: new Date(),
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'moderator@example.com',
+      passwordHash,
+      role: 'MODERATOR',
+      emailVerified: new Date(),
+    },
+  });
+
+  await prisma.moderatorPermissionConfig.create({
+    data: {
+      updatedById: adminUser.id,
+      canModerateMessages: true,
+      canVerifyProfiles: true,
+      canVerifyPhotos: true,
+      canInspectSubscriptions: true,
+      canManageReports: true,
+      canUpdateRiskLabels: true,
+    },
+  });
 
   const commonPhotoA = {
     isPrimary: true,
@@ -448,6 +480,12 @@ async function main() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('📧 Email                    | 🔑 Password     | 📋 Status');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(
+    'admin@example.com           | Password123!   | ✅ ADMIN (full moderation access)'
+  );
+  console.log(
+    'moderator@example.com       | Password123!   | ✅ MODERATOR (permissions configurable)'
+  );
   console.log(
     'ahmed@example.com           | Password123!   | ✅ COMPLETE (Male, married, 2 photos)'
   );
