@@ -60,3 +60,11 @@ export async function signIn(
     return { success: false, error: 'Internal server error' };
   }
 }
+
+// Alias for use in API route
+export async function validateAdminLogin(
+  email: string,
+  password: string
+): Promise<SignInResult> {
+  return signIn(email, password, 'admin');
+}

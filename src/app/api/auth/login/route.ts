@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { signIn } from '@/app/auth/login/auth-utils';
+import { validateUserLogin } from '@/app/auth/login/auth-utils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await signIn(email, password, 'user');
+    const result = await validateUserLogin(email, password);
 
     if (!result.success) {
       return NextResponse.json(
@@ -27,7 +27,11 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('User login error:', error);
+    console.error('User login API error:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
