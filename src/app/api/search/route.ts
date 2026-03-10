@@ -49,11 +49,7 @@ export async function GET(request: Request) {
     const minAge = parseNumber(url.searchParams.get('minAge'));
     const maxAge = parseNumber(url.searchParams.get('maxAge'));
 
-    if (
-      typeof minAge === 'number' &&
-      typeof maxAge === 'number' &&
-      minAge > maxAge
-    ) {
+    if (typeof minAge === 'number' && typeof maxAge === 'number' && minAge > maxAge) {
       return NextResponse.json(
         {
           success: false,

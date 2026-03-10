@@ -329,10 +329,7 @@ export async function searchProfiles(input: {
             where: {
               isApproved: true,
             },
-            orderBy: [
-              { isPrimary: 'desc' },
-              { createdAt: 'asc' },
-            ],
+            orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
             select: {
               url: true,
               isBlurred: true,
@@ -400,7 +397,9 @@ export async function searchProfiles(input: {
   }
 }
 
-export async function getSearchProfileDetail(targetUserId: string): Promise<SearchProfileDetailResponse> {
+export async function getSearchProfileDetail(
+  targetUserId: string
+): Promise<SearchProfileDetailResponse> {
   try {
     const context = await getSearchContext();
     if ('error' in context) {
@@ -413,7 +412,10 @@ export async function getSearchProfileDetail(targetUserId: string): Promise<Sear
     }
 
     if (targetUserId === userId) {
-      return { success: false, errors: { targetUserId: 'You cannot view your own profile from search' } };
+      return {
+        success: false,
+        errors: { targetUserId: 'You cannot view your own profile from search' },
+      };
     }
 
     const [profile, favorite, freeTier] = await Promise.all([

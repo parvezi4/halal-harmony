@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSearchProfileDetail } from '@/app/actions/search';
 
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ userId: string }> }
-) {
+export async function GET(_request: Request, context: { params: Promise<{ userId: string }> }) {
   const params = await context.params;
   const userId = params.userId;
   const result = await getSearchProfileDetail(userId);

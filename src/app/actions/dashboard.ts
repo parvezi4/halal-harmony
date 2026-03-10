@@ -108,10 +108,7 @@ export async function getDashboardData(): Promise<DashboardResponse> {
     const unreadMessages = await prisma.message.count({
       where: {
         thread: {
-          OR: [
-            { participantAId: userId },
-            { participantBId: userId },
-          ],
+          OR: [{ participantAId: userId }, { participantBId: userId }],
         },
         senderId: { not: userId },
         isRead: false,
@@ -142,7 +139,8 @@ export async function getDashboardData(): Promise<DashboardResponse> {
         subscriptionEndDate,
         profileCompleteness: completenessCalc,
         messages: {
-          unreadConversations: unreadMessages > 0 ? Math.min(unreadMessages, totalActiveThreads) : 0,
+          unreadConversations:
+            unreadMessages > 0 ? Math.min(unreadMessages, totalActiveThreads) : 0,
           totalActiveThreads,
         },
         matchCount,
@@ -153,4 +151,3 @@ export async function getDashboardData(): Promise<DashboardResponse> {
     return { success: false, errors: { general: 'Failed to fetch dashboard data' } };
   }
 }
-

@@ -2,12 +2,7 @@ import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 import { checkEitherHasSubscription } from '@/lib/subscription/checkActiveSubscription';
 import { filterContent } from '@/lib/moderation/contentFilter';
-import {
-  getThreads,
-  sendMessage,
-  initiateThread,
-  getUnreadCount,
-} from '@/app/actions/messages';
+import { getThreads, sendMessage, initiateThread, getUnreadCount } from '@/app/actions/messages';
 
 // Mock dependencies
 jest.mock('next-auth/next');

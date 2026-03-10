@@ -77,14 +77,12 @@ describe('GET /api/dashboard', () => {
 
     // Verify calculation: (completedFields / totalFields) * 100
     const expectedPercentage = Math.round(
-      (mockData.profileCompleteness.completedFields /
-        mockData.profileCompleteness.totalFields) *
+      (mockData.profileCompleteness.completedFields / mockData.profileCompleteness.totalFields) *
         100
     );
     expect(json.data.profileCompleteness.percentage).toBe(expectedPercentage);
     expect(json.data.profileCompleteness.totalFields).toBe(
-      mockData.profileCompleteness.mandatory.total +
-        mockData.profileCompleteness.optional.total
+      mockData.profileCompleteness.mandatory.total + mockData.profileCompleteness.optional.total
     );
   });
 
@@ -113,7 +111,6 @@ describe('GET /api/dashboard', () => {
       data: mockData,
     });
 
-    
     const response = await GET();
     const json = await response.json();
 
@@ -145,7 +142,6 @@ describe('GET /api/dashboard', () => {
       data: mockData,
     });
 
-    
     const response = await GET();
     const json = await response.json();
 
@@ -191,7 +187,6 @@ describe('GET /api/dashboard', () => {
       data: freeData,
     });
 
-    
     const response = await GET();
     const json = await response.json();
 
@@ -225,7 +220,6 @@ describe('GET /api/dashboard', () => {
       data: expiredData,
     });
 
-    
     const response = await GET();
     const json = await response.json();
 
@@ -258,7 +252,6 @@ describe('GET /api/dashboard', () => {
       data: mockData,
     });
 
-    
     const response = await GET();
     const json = await response.json();
 
@@ -291,7 +284,6 @@ describe('GET /api/dashboard', () => {
       data: mockData,
     });
 
-    
     const response = await GET();
     const json = await response.json();
 
@@ -304,7 +296,6 @@ describe('GET /api/dashboard', () => {
       errors: { general: 'Failed to fetch dashboard data' },
     });
 
-    
     const response = await GET();
     const json = await response.json();
 

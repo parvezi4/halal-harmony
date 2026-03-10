@@ -94,7 +94,10 @@ export function calculateProfileCompleteness(profile: CompletenessInput) {
     if (profile.waliRelationship && profile.waliRelationship.trim()) {
       mandatoryCompleted += 1;
     }
-    if ((profile.waliEmail && profile.waliEmail.trim()) || (profile.waliPhone && profile.waliPhone.trim())) {
+    if (
+      (profile.waliEmail && profile.waliEmail.trim()) ||
+      (profile.waliPhone && profile.waliPhone.trim())
+    ) {
       mandatoryCompleted += 1;
     }
   }

@@ -23,7 +23,9 @@ describe('GET /api/search', () => {
   });
 
   it('should return 400 when minAge is greater than maxAge', async () => {
-    const request = new Request('http://localhost:3000/api/search?submitted=true&minAge=35&maxAge=20');
+    const request = new Request(
+      'http://localhost:3000/api/search?submitted=true&minAge=35&maxAge=20'
+    );
 
     const response = await GET(request);
     const body = await response.json();
