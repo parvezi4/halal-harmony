@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { verifyAdminOrModerator } from '@/lib/admin/access';
+import AdminLogoutButton from './AdminLogoutButton';
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const access = await verifyAdminOrModerator();
@@ -70,9 +71,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               </span>
             )}
             <div className="ml-2 border-l border-slate-700 pl-4">
-              <Link href="/dashboard" className="text-slate-400 hover:text-slate-200">
-                ← Back to Site
-              </Link>
+              <AdminLogoutButton />
             </div>
           </nav>
         </div>
