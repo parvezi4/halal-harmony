@@ -1,20 +1,70 @@
 'use client';
 
 import { useState } from 'react';
+import type { ModeratorCapabilityState } from '@/lib/admin/capabilities';
+import { updateModeratorPermissionConfig } from '@/app/actions/admin/permissions';
 
-export default function ModerationSettingsClient() {
+interface ModerationSettingsClientProps {
+  initialPermissions: ModeratorCapabilityState & { updatedAt: string };
+}
+
+export default function ModerationSettingsClient({
+  initialPermissions,
+}: ModerationSettingsClientProps) {
   // In MVP, these are hardcoded. In future, they would be persisted to database.
   const [moderationType, setModerationType] = useState<'PATTERN' | 'AI_NLP'>('PATTERN');
   const [workflow, setWorkflow] = useState<'PRE_MODERATION' | 'POST_MODERATION'>('PRE_MODERATION');
+  const [permissions, setPermissions] = useState<ModeratorCapabilityState>({
+    canModerateMessages: initialPermissions.canModerateMessages,
+    canVerifyProfiles: initialPermissions.canVerifyProfiles,
+    canVerifyPhotos: initialPermissions.canVerifyPhotos,
+    canInspectSubscriptions: initialPermissions.canInspectSubscriptions,
+    canManageReports: initialPermissions.canManageReports,
+    canUpdateRiskLabels: initialPermissions.canUpdateRiskLabels,
+  });
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string>(initialPermissions.updatedAt);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
-    // TODO: Implement database persistence.
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
-    window.alert('Settings saved! (Note: In MVP, these are not persisted to database)');
+    const result = await updateModeratorPermissionConfig(permissions);
+
+    if (!result.success || !result.data) {
+      window.alert(result.errors?.general || 'Failed to save settings');
+      setIsSaving(false);
+      return;
+    }
+
+    setPermissions({
+      canModerateMessages: result.data.canModerateMessages,
+      canVerifyProfiles: result.data.canVerifyProfiles,
+      canVerifyPhotos: result.data.canVerifyPhotos,
+      canInspectSubscriptions: result.data.canInspectSubscriptions,
+      canManageReports: result.data.canManageReports,
+      canUpdateRiskLabels: result.data.canUpdateRiskLabels,
+    });
+    setLastUpdatedAt(result.data.updatedAt);
+    window.alert('Moderator permissions updated successfully.');
     setIsSaving(false);
   };
+
+  const togglePermission = (key: keyof ModeratorCapabilityState) => {
+    setPermissions((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const formattedLastUpdated =
+    lastUpdatedAt === new Date(0).toISOString()
+      ? 'No persisted configuration yet'
+      : new Date(lastUpdatedAt).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
 
   return (
     <div className="space-y-6">
@@ -28,11 +78,75 @@ export default function ModerationSettingsClient() {
       <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-xs text-amber-100">
         <p className="font-semibold">⚠️ MVP Notice</p>
         <p className="mt-1">
-          Settings UI is functional but changes are not persisted to database in the current MVP.
-          Default configuration is hardcoded in{' '}
+          Message moderation type/workflow options below are still preview-only in this MVP.
+          Moderator capability toggles are persisted to database. Core moderation behavior is still
+          hardcoded in{' '}
           <code className="rounded bg-slate-950 px-1">src/lib/moderation/contentFilter.ts</code>.
         </p>
       </div>
+
+      <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-50">Moderator Permissions</h2>
+            <p className="mt-1 text-xs text-slate-400">
+              Configure what moderator accounts can access without admin intervention.
+            </p>
+          </div>
+          <p className="text-xs text-slate-500">Last updated: {formattedLastUpdated}</p>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+            <span>Message moderation queue</span>
+            <input
+              type="checkbox"
+              checked={permissions.canModerateMessages}
+              onChange={() => togglePermission('canModerateMessages')}
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+            <span>Profile verification queue</span>
+            <input
+              type="checkbox"
+              checked={permissions.canVerifyProfiles}
+              onChange={() => togglePermission('canVerifyProfiles')}
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+            <span>Photo verification queue</span>
+            <input
+              type="checkbox"
+              checked={permissions.canVerifyPhotos}
+              onChange={() => togglePermission('canVerifyPhotos')}
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+            <span>Subscription inspection (view-only)</span>
+            <input
+              type="checkbox"
+              checked={permissions.canInspectSubscriptions}
+              onChange={() => togglePermission('canInspectSubscriptions')}
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+            <span>Reports management queue</span>
+            <input
+              type="checkbox"
+              checked={permissions.canManageReports}
+              onChange={() => togglePermission('canManageReports')}
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+            <span>Risk labels and trust notes</span>
+            <input
+              type="checkbox"
+              checked={permissions.canUpdateRiskLabels}
+              onChange={() => togglePermission('canUpdateRiskLabels')}
+            />
+          </label>
+        </div>
+      </section>
 
       <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-6">
         <h2 className="text-lg font-semibold text-slate-50">Moderation Type</h2>

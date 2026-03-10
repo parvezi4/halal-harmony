@@ -54,6 +54,7 @@ async function main() {
 
   await prisma.moderatorPermissionConfig.create({
     data: {
+      id: 'global-moderator-permissions',
       updatedById: adminUser.id,
       canModerateMessages: true,
       canVerifyProfiles: true,

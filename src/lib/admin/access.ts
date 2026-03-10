@@ -14,7 +14,23 @@ interface AccessResult {
 }
 
 async function getModeratorCapabilityState(): Promise<ModeratorCapabilityState | null> {
-  const config = await prisma.moderatorPermissionConfig.findFirst({
+  const config = await prisma.moderatorPermissionConfig.findUnique({
+    where: { id: 'global-moderator-permissions' },
+    select: {
+      canModerateMessages: true,
+      canVerifyProfiles: true,
+      canVerifyPhotos: true,
+      canInspectSubscriptions: true,
+      canManageReports: true,
+      canUpdateRiskLabels: true,
+    },
+  });
+
+  if (config) {
+    return config;
+  }
+
+  const fallbackConfig = await prisma.moderatorPermissionConfig.findFirst({
     orderBy: { updatedAt: 'desc' },
     select: {
       canModerateMessages: true,
@@ -26,11 +42,11 @@ async function getModeratorCapabilityState(): Promise<ModeratorCapabilityState |
     },
   });
 
-  if (!config) {
+  if (!fallbackConfig) {
     return null;
   }
 
-  return config;
+  return fallbackConfig;
 }
 
 function anyModeratorCapabilityEnabled(config: ModeratorCapabilityState) {
