@@ -42,6 +42,15 @@ type SearchResponse = {
   errors?: Record<string, string>;
 };
 
+type ToggleFavoriteResponse = {
+  success: boolean;
+  data?: {
+    targetUserId?: string;
+    isFavorited?: boolean;
+  };
+  errors?: Record<string, string>;
+};
+
 const PRACTICING_LEVELS = ['Very practicing', 'Practicing', 'Moderate', 'Less practicing', 'Secular'];
 const HIJAB_OR_BEARD_OPTIONS = ['Niqab', 'Hijab', 'Headscarf', 'Full beard', 'Trimmed', 'Clean shaven'];
 const MARITAL_OPTIONS = ['virgin', 'divorced', 'annulled', 'married', 'separated'];
@@ -185,25 +194,41 @@ export default function SearchPage() {
   };
 
   const onToggleFavorite = async (targetUserId: string) => {
-    if (results.some((item) => item.userId === targetUserId && item.isFavorited)) {
-      return;
-    }
-
     const previous = results;
+    setError(null);
+
     setResults((current) =>
       current.map((item) =>
-        item.userId === targetUserId ? { ...item, isFavorited: true } : item
+        item.userId === targetUserId ? { ...item, isFavorited: !item.isFavorited } : item
       )
     );
 
-    const response = await fetch('/api/favorites', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetUserId }),
-    });
+    try {
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId }),
+      });
 
-    if (!response.ok) {
+      const payload = (await response.json()) as ToggleFavoriteResponse;
+
+      if (!response.ok || !payload.success || payload.data?.targetUserId !== targetUserId) {
+        setResults(previous);
+        setError(payload.errors?.general || 'Failed to update favorites');
+        return;
+      }
+
+      if (typeof payload.data?.isFavorited === 'boolean') {
+        const isFavorited = payload.data.isFavorited;
+        setResults((current) =>
+          current.map((item) =>
+            item.userId === targetUserId ? { ...item, isFavorited } : item
+          )
+        );
+      }
+    } catch {
       setResults(previous);
+      setError('Failed to update favorites');
     }
   };
 

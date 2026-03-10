@@ -120,6 +120,8 @@ npm run typecheck         # Run TypeScript type checking
 Currently tested:
 
 - ✅ **Register API** (`/api/auth/register`) - 7 test cases covering success, validation, duplicate users, and error handling
+- ✅ **Favorites API** (`/api/favorites`) - 9 test cases covering GET/POST routes, authorization, validation, and error handling
+- ✅ **Favorites Actions** (`/app/actions/favorites`) - 5 test cases covering toggle logic, business rules, and data filtering
 
 ### Pre-push quality gate
 

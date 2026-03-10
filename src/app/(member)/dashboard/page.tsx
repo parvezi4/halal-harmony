@@ -150,7 +150,7 @@ export default function DashboardPage() {
           Start a search
         </Link>
         <Link href="/favorites" className="rounded-full border border-slate-700 bg-slate-900 px-4 py-2 font-semibold text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800">
-          Favourites
+          Favorites
         </Link>
         <Link href="/pricing" className="rounded-full border border-slate-700 bg-slate-900 px-4 py-2 font-semibold text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800">
           Manage subscription
@@ -165,7 +165,7 @@ export default function DashboardPage() {
           {data.profileCompleteness.percentage < 100 && (
             <li>• Complete your profile to increase your visibility and connect with serious matches.</li>
           )}
-          <li>• Browse available profiles and save favourites to your wishlist.</li>
+          <li>• Browse available profiles and save favorites to your wishlist.</li>
           {data.subscriptionStatus === 'free' && (
             <li>• Upgrade to premium to send messages and view more profiles.</li>
           )}
