@@ -28,7 +28,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </Link>
           <nav className="flex items-center gap-4 text-xs sm:text-sm">
             <Link href="/admin/moderation" className="text-slate-200 hover:text-accent-200">
-              Moderation Queue
+              Message Queue
+            </Link>
+            <Link href="/admin/moderation/profiles" className="text-slate-200 hover:text-accent-200">
+              Profile Queue
             </Link>
             {isAdmin && (
               <Link
