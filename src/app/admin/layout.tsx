@@ -7,7 +7,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const access = await verifyAdminOrModerator();
 
   if (!access.userId) {
-    redirect('/auth/login');
+    redirect('/admin/login');
   }
 
   if (!access.authorized) {
@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-50">
       <header className="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/admin/moderation" className="flex items-center gap-2">
+          <Link href="/admin" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
               HH
             </div>
