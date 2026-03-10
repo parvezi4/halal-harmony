@@ -45,13 +45,24 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <Link href="/admin/flagged" className="text-slate-200 hover:text-accent-200">
               Flagged Users
             </Link>
+            <Link href="/admin/members" className="text-slate-200 hover:text-accent-200">
+              Members
+            </Link>
             {isAdmin && (
-              <Link
-                href="/admin/moderation/settings"
-                className="text-slate-200 hover:text-accent-200"
-              >
-                Settings
-              </Link>
+              <>
+                <Link
+                  href="/admin/audit-log"
+                  className="text-slate-200 hover:text-accent-200"
+                >
+                  Audit Log
+                </Link>
+                <Link
+                  href="/admin/moderation/settings"
+                  className="text-slate-200 hover:text-accent-200"
+                >
+                  Settings
+                </Link>
+              </>
             )}
             {!isAdmin && (
               <span className="rounded border border-slate-700 px-2 py-1 text-[11px] uppercase tracking-wide text-slate-400">
