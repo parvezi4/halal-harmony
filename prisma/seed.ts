@@ -447,6 +447,144 @@ async function main() {
     },
   });
 
+  const amberFlaggedUser = await prisma.user.create({
+    data: {
+      email: 'musa.flagged@example.com',
+      passwordHash,
+      role: 'MEMBER',
+      emailVerified: new Date(),
+      profile: {
+        create: {
+          fullName: 'Musa Kareem',
+          alias: 'Musa',
+          gender: 'MALE',
+          dateOfBirth: new Date('1991-11-03'),
+          country: 'United Kingdom',
+          city: 'Leicester',
+          nationality: 'British',
+          ethnicity: 'Arab',
+          practicingLevel: 'Practicing',
+          prayerHabit: '5 times daily',
+          maritalStatus: 'virgin',
+          willingToRelocate: 'maybe',
+          spouseStatusPreferences: JSON.stringify(['virgin', 'annulled']),
+          about: 'Serious about marriage and active in the local masjid.',
+          preferences: 'Looking for compatibility and family support.',
+          onboardingCompletedAt: new Date(),
+          status: 'APPROVED',
+          riskLabel: 'AMBER',
+          riskNotes: 'Repeated complaints about pushing contact exchange too quickly.',
+          riskLabeledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        },
+      },
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'khadija.flagged@example.com',
+      passwordHash,
+      role: 'MEMBER',
+      emailVerified: new Date(),
+      profile: {
+        create: {
+          fullName: 'Khadija Noor',
+          alias: 'Khadija',
+          gender: 'FEMALE',
+          dateOfBirth: new Date('1994-09-09'),
+          country: 'United Kingdom',
+          city: 'Manchester',
+          nationality: 'British',
+          ethnicity: 'South Asian',
+          practicingLevel: 'Practicing',
+          prayerHabit: '5 times daily',
+          maritalStatus: 'virgin',
+          willingToRelocate: 'yes',
+          spouseStatusPreferences: JSON.stringify(['virgin', 'divorced']),
+          waliName: 'Ilyas Noor',
+          waliRelationship: 'Father',
+          waliEmail: 'wali.khadija@example.com',
+          waliPhone: '+447700900555',
+          about: 'Looking for a halal marriage with strong deen and adab.',
+          preferences: 'Calm, responsible, and family-focused.',
+          onboardingCompletedAt: new Date(),
+          status: 'APPROVED',
+          riskLabel: 'RED',
+          riskNotes: 'Escalated to high risk after repeated off-platform behaviour reports.',
+          riskLabeledAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        },
+      },
+    },
+  });
+
+  const suspendedFlaggedUser = await prisma.user.create({
+    data: {
+      email: 'ibrahim.suspended@example.com',
+      passwordHash,
+      role: 'MEMBER',
+      emailVerified: new Date(),
+      profile: {
+        create: {
+          fullName: 'Ibrahim Saeed',
+          alias: 'Ibrahim',
+          gender: 'MALE',
+          dateOfBirth: new Date('1989-02-18'),
+          country: 'United Kingdom',
+          city: 'Bradford',
+          nationality: 'British',
+          ethnicity: 'Arab',
+          practicingLevel: 'Moderate',
+          prayerHabit: 'Regularly',
+          maritalStatus: 'separated',
+          willingToRelocate: 'no',
+          spouseStatusPreferences: JSON.stringify(['virgin', 'separated']),
+          about: 'Previously active profile kept for moderation workflow checks.',
+          preferences: 'No current matchmaking activity.',
+          onboardingCompletedAt: new Date(),
+          status: 'SUSPENDED',
+          riskLabel: 'RED',
+          riskNotes: 'Suspended after multiple harassment complaints.',
+          riskLabeledAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        },
+      },
+    },
+  });
+
+  const greenReportedUser = await prisma.user.create({
+    data: {
+      email: 'sumayyah.reported@example.com',
+      passwordHash,
+      role: 'MEMBER',
+      emailVerified: new Date(),
+      profile: {
+        create: {
+          fullName: 'Sumayyah Yusuf',
+          alias: 'Sumayyah',
+          gender: 'FEMALE',
+          dateOfBirth: new Date('1997-06-21'),
+          country: 'United Kingdom',
+          city: 'Leeds',
+          nationality: 'British',
+          ethnicity: 'African',
+          practicingLevel: 'Practicing',
+          prayerHabit: '5 times daily',
+          maritalStatus: 'virgin',
+          willingToRelocate: 'maybe',
+          spouseStatusPreferences: JSON.stringify(['virgin']),
+          waliName: 'Yusuf Hassan',
+          waliRelationship: 'Father',
+          waliEmail: 'wali.sumayyah@example.com',
+          waliPhone: '+447700900666',
+          about: 'Approved profile intentionally kept green for report-based flagged-user testing.',
+          preferences: 'Good communication and seriousness about nikah.',
+          onboardingCompletedAt: new Date(),
+          status: 'APPROVED',
+          riskLabel: 'GREEN',
+        },
+      },
+    },
+  });
+
   await prisma.messageThread.create({
     data: {
       participantAId: user1.id,
@@ -469,12 +607,59 @@ async function main() {
     },
   });
 
-  await prisma.report.create({
+  const flaggedThread = await prisma.messageThread.create({
     data: {
-      reporterId: user1.id,
-      reason: 'Test report for moderation workflow',
-      status: 'OPEN',
+      participantAId: user1.id,
+      participantBId: amberFlaggedUser.id,
+      messages: {
+        create: [
+          {
+            senderId: user1.id,
+            content: 'Assalamu alaikum. I would like to speak with respect and involve family early.',
+            isRead: true,
+            moderationStatus: 'APPROVED',
+          },
+          {
+            senderId: amberFlaggedUser.id,
+            content: 'Let us move to WhatsApp right now on 07123 456789 instead of using this app.',
+            isFlagged: true,
+            flaggedReason: 'Contact info sharing detected',
+            moderationStatus: 'PENDING',
+          },
+        ],
+      },
     },
+  });
+
+  await prisma.report.createMany({
+    data: [
+      {
+        reporterId: user2.id,
+        reportedUserId: amberFlaggedUser.id,
+        messageThreadId: flaggedThread.id,
+        reason: 'Pushed for off-platform contact immediately after matching.',
+        status: 'OPEN',
+      },
+      {
+        reporterId: user1.id,
+        reportedUserId: amberFlaggedUser.id,
+        messageThreadId: flaggedThread.id,
+        reason: 'Ignored requests to keep the conversation on-platform.',
+        status: 'REVIEWING',
+      },
+      {
+        reporterId: user1.id,
+        reportedUserId: greenReportedUser.id,
+        reason: 'Potentially suspicious opening messages requiring review.',
+        status: 'OPEN',
+      },
+      {
+        reporterId: user2.id,
+        reportedUserId: suspendedFlaggedUser.id,
+        reason: 'Historical harassment report retained for admin reference.',
+        status: 'RESOLVED',
+      },
+    ],
   });
 
   console.log('\n✅ Seed complete! Test users created:\n');
@@ -508,6 +693,24 @@ async function main() {
   console.log(
     'sara@example.com            | Password123!   | ✅ COMPLETE (Female, age 14 MIN, no photos)'
   );
+  console.log(
+    'musa.flagged@example.com    | Password123!   | ⚠️  FLAGGED (AMBER, 2 active reports)'
+  );
+  console.log(
+    'khadija.flagged@example.com | Password123!   | ⚠️  FLAGGED (RED, risk-labeled only)'
+  );
+  console.log(
+    'ibrahim.suspended@example.com | Password123! | ⛔ SUSPENDED (RED, no inline suspend action)'
+  );
+  console.log(
+    'sumayyah.reported@example.com | Password123! | ⚠️  FLAGGED (GREEN, report-driven row)'
+  );
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('Admin manual verification scenarios:');
+  console.log('- Dashboard badges should show: 1 pending message, 2 pending profiles, 5 pending photos, 3 open/in-review reports.');
+  console.log('- Flagged Users page should show GREEN, AMBER, and RED rows with different available actions.');
+  console.log('- Use musa.flagged@example.com to test Resolve + Suspend; the row should remain because the risk label stays AMBER.');
+  console.log('- Use ibrahim.suspended@example.com to confirm suspended users do not show Suspend or Resolve + Suspend buttons.');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }
 

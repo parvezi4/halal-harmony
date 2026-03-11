@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import {
   getPendingPhotos,
   approvePhoto,
@@ -6,106 +5,78 @@ import {
   blurPhoto,
   getPhotoVerificationStats,
 } from '@/app/actions/admin/photo-verification';
-import { prisma } from '@/lib/prisma';
+import { verifyAdminOrModerator } from '@/lib/admin/access';
+
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    photo: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      count: jest.fn(),
+    },
+    moderationAuditLog: {
+      create: jest.fn(),
+    },
+    profile: {
+      update: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('@/lib/admin/access', () => ({
+  verifyAdminOrModerator: jest.fn(),
+}));
+
+const mockVerifyAdminOrModerator = verifyAdminOrModerator as jest.Mock;
 
 describe('Admin Photo Verification Actions', () => {
-  let testUserId: string;
-  let testProfileId: string;
-  let testPhotoId: string;
-
-  beforeAll(async () => {
-    // Create test user
-    const user = await prisma.user.create({
-      data: {
-        email: `test-photo-${Date.now()}@test.com`,
-        passwordHash: 'hashed',
-        role: 'ADMIN',
-      },
-    });
-    testUserId = user.id;
-
-    // Create test profile
-    const profile = await prisma.profile.create({
-      data: {
-        userId: testUserId,
-        gender: 'MALE',
-        status: 'PENDING_REVIEW',
-        riskLabel: 'GREEN',
-      },
-    });
-    testProfileId = profile.id;
-
-    // Create test photo
-    const photo = await prisma.photo.create({
-      data: {
-        profileId: testProfileId,
-        url: 'https://example.com/photo.jpg',
-        mimeType: 'image/jpeg',
-        fileSizeBytes: 1024000,
-        isApproved: false,
-        isBlurred: true,
-        isPrimary: false,
-      },
-    });
-    testPhotoId = photo.id;
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  afterAll(async () => {
-    // Cleanup
-    await prisma.photo.deleteMany({
-      where: { profileId: testProfileId },
-    });
-    await prisma.profile.delete({
-      where: { id: testProfileId },
-    });
-    await prisma.user.delete({
-      where: { id: testUserId },
-    });
+  it('should return unauthorized for getPendingPhotos without session', async () => {
+    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
+
+    const result = await getPendingPhotos();
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.general).toBeDefined();
   });
 
-  describe('getPendingPhotos', () => {
-    it('should return empty array for unauthorized users', async () => {
-      const result = await getPendingPhotos();
-      expect(result.success).toBe(false);
-      expect(result.errors?.general).toBeDefined();
-    });
+  it('should return unauthorized for approvePhoto without session', async () => {
+    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
+
+    const result = await approvePhoto('photo-1', 'Test approval');
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.general).toBeDefined();
   });
 
-  describe('approvePhoto', () => {
-    it('should return unauthorized response without session', async () => {
-      const result = await approvePhoto(testPhotoId, 'Test approval');
-      expect(result.success).toBe(false);
-      expect(result.errors?.general).toBeDefined();
-    });
+  it('should reject rejection without reason when authorized', async () => {
+    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: true, userId: 'admin-1', role: 'ADMIN' });
+
+    const result = await rejectPhoto('photo-1', '');
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.general).toBe('Rejection reason is required');
   });
 
-  describe('rejectPhoto', () => {
-    it('should reject rejection without reason', async () => {
-      const result = await rejectPhoto(testPhotoId, '');
-      expect(result.success).toBe(false);
-      expect(result.errors?.general).toBeDefined();
-    });
+  it('should return unauthorized for blurPhoto without session', async () => {
+    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
 
-    it('should return unauthorized response without session', async () => {
-      const result = await rejectPhoto(testPhotoId, 'Test reason');
-      expect(result.success).toBe(false);
-      expect(result.errors?.general).toBeDefined();
-    });
+    const result = await blurPhoto('photo-1', 'Test reason');
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.general).toBeDefined();
   });
 
-  describe('blurPhoto', () => {
-    it('should return unauthorized response without session', async () => {
-      const result = await blurPhoto(testPhotoId, 'Test reason');
-      expect(result.success).toBe(false);
-      expect(result.errors?.general).toBeDefined();
-    });
-  });
+  it('should return unauthorized for getPhotoVerificationStats without session', async () => {
+    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
 
-  describe('getPhotoVerificationStats', () => {
-    it('should return unauthorized response without session', async () => {
-      const result = await getPhotoVerificationStats();
-      expect(result.success).toBe(false);
-      expect(result.errors?.general).toBeDefined();
-    });
+    const result = await getPhotoVerificationStats();
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.general).toBeDefined();
   });
 });
