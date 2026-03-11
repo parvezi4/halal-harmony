@@ -2,8 +2,8 @@
 phase: 2
 feature_area: Messaging
 description: Real-time messaging with subscription gating, Shariah-compliant content moderation, and admin review workflow
-last_updated: '2026-03-10'
-status: in-progress
+last_updated: '2026-03-11'
+status: completed
 ---
 
 user_stories:
@@ -195,8 +195,9 @@ user_stories:
       - I click "Reject" or "Reject + Warn" button
       - Message moderationStatus changes to REJECTED
       - Message is NOT delivered to recipient
-      - If "Reject + Warn", system sends warning notification to sender
-      - Warning message is customizable
+      - If "Reject", message is dismissed with no further action
+      - If "Reject + Warn", a ModerationWarning record is persisted to DB with recipientId, issuerId, messageId, and warning content (minimum 5 characters)
+      - Warning content is editable via browser prompt before submission; cancellation aborts the action
       - Other queued messages in thread are released (if clean)
       - Repeat violations can trigger account suspension
       - Message disappears from pending queue
@@ -327,7 +328,8 @@ technical_notes:
 database_changes:
   - Message model: Add isFlagged (boolean), flaggedReason (string), moderationStatus (enum)
   - Add index on Message.moderationStatus for admin queries
-  - Consider ModerationConfig table for storing admin settings (or use JSON in Config table)
+  - ModerationConfig table for storing admin settings (ModeratorPermissionConfig model added)
+  - ModerationWarning model: records warnings issued during Reject+Warn actions; fields: id, recipientId (FK User), issuerId (FK User), messageId (FK Message), content, createdAt; indexes on recipientId+createdAt, issuerId+createdAt, messageId
 
 future_enhancements:
   - Read receipts and "seen by" indicators

@@ -126,7 +126,84 @@ Comprehensive test users covering all onboarding scenarios and edge cases.
 
 ---
 
-## Onboarding Rules Coverage
+### 8. Musa (`musa.flagged@example.com`) ⚠️ AMBER FLAGGED
+
+**Password:** `Password123!`  
+**Test Scenario:** Admin moderation — Resolve + Suspend testing
+
+- **Gender:** MALE
+- **Age:** ~34 years (1991-11-03)
+- **Marital Status:** `virgin` ✓
+- **Spouse Preferences:** `['virgin', 'annulled']` ✓
+- **Wali Info:** None ✓ (not required for male)
+- **Photos:** 0 photos
+- **Onboarding:** ✓ Complete
+- **Status:** APPROVED
+- **Risk Label:** AMBER
+- **Risk Notes:** Repeated complaints about pushing contact exchange too quickly.
+- **Reports:** 2 active reports about off-platform contact pushing (from Fatima)
+- **Use Case:** Test `/admin/flagged` Resolve and Resolve + Suspend actions; verify row stays after resolve because risk label remains AMBER
+
+---
+
+### 9. Khadija (`khadija.flagged@example.com`) ⚠️ RED FLAGGED
+
+**Password:** `Password123!`  
+**Test Scenario:** Admin moderation — RED risk label, no inline reports
+
+- **Gender:** FEMALE
+- **Age:** ~31 years (1994-09-09)
+- **Marital Status:** `virgin` ✓
+- **Spouse Preferences:** `['virgin', 'married']` ✓ (female seeking married man = valid)
+- **Wali Info:** ✓ All fields present (Father: Ilyas Noor)
+- **Photos:** 0 photos
+- **Onboarding:** ✓ Complete
+- **Status:** APPROVED
+- **Risk Label:** RED
+- **Risk Notes:** Escalated to high risk after repeated off-platform behaviour reports.
+- **Reports:** None
+- **Use Case:** Verify RED label appears with correct color coding; no Suspend action since already RED/no open reports
+
+---
+
+### 10. Ibrahim (`ibrahim.suspended@example.com`) ⛔ SUSPENDED
+
+**Password:** `Password123!`  
+**Test Scenario:** Admin moderation — Suspended user UI state
+
+- **Gender:** MALE
+- **Age:** ~37 years (1989-02-18)
+- **Marital Status:** `separated` ✓
+- **Spouse Preferences:** `['virgin', 'divorced']` ✓
+- **Wali Info:** None ✓
+- **Photos:** 0 photos
+- **Onboarding:** ✓ Complete
+- **Status:** SUSPENDED
+- **Risk Label:** RED
+- **Risk Notes:** Suspended after multiple harassment complaints.
+- **Reports:** 1 historical resolved report (from Fatima)
+- **Use Case:** Confirm Suspend and Resolve+Suspend buttons are hidden for already-suspended users
+
+---
+
+### 11. Sumayyah (`sumayyah.reported@example.com`) ⚠️ GREEN (report-driven)
+
+**Password:** `Password123!`  
+**Test Scenario:** Admin moderation — GREEN profile with an open report
+
+- **Gender:** FEMALE
+- **Age:** ~28 years (1997-06-21)
+- **Marital Status:** `virgin` ✓
+- **Spouse Preferences:** `['virgin']` ✓
+- **Wali Info:** ✓ All fields present (Father: Yusuf Hassan)
+- **Photos:** 0 photos
+- **Onboarding:** ✓ Complete
+- **Status:** APPROVED
+- **Risk Label:** GREEN
+- **Reports:** 1 open report (from Ahmed) flagged for suspicious opening messages
+- **Use Case:** Test basic report resolution; verify GREEN-label row appears in `/admin/flagged` as report-driven entry
+
+---
 
 ### ✓ Age Validation
 
@@ -204,6 +281,24 @@ Comprehensive test users covering all onboarding scenarios and edge cases.
    - Should NOT see onboarding wizard
    - Should access dashboard/search/messages normally
 
+7. **Admin Moderation — Flagged Users**
+   - Login to `/admin/login` as `admin@example.com`
+   - Navigate to `/admin/flagged`
+   - Verify 4 rows: GREEN (Sumayyah), AMBER (Musa), RED (Khadija), RED+SUSPENDED (Ibrahim)
+   - For Musa (AMBER): Resolve + Suspend buttons should both be available
+   - For Ibrahim (SUSPENDED): Suspend and Resolve+Suspend should be hidden
+
+8. **Admin Moderation — Message Queue**
+   - Navigate to `/admin/moderation` ("Message Queue" in admin nav)
+   - Should show 1 pending message (Musa's contact-info message)
+   - Click **Reject**: message should disappear from queue
+   - Re-seed and click **Reject + Warn**: enter a 5+ character message → verify `ModerationWarning` row created in Prisma Studio (`npx prisma studio`)
+   - Test short warning (< 5 chars) → should return validation error, message remains pending
+
+9. **Dashboard Stats**
+   - Admin dashboard at `/admin` should show:
+     - 1 pending message, 2 pending profiles, 5 pending photos, 3 open/in-review reports
+
 ---
 
 ## Database Constraints Enforced
@@ -222,7 +317,9 @@ Comprehensive test users covering all onboarding scenarios and edge cases.
 - Moderator test user: `moderator@example.com` / `Password123!`
 - If a local database predates moderator-role support, run `npx prisma db push` once so the `MODERATOR` enum value exists before testing moderator login.
 - Ahmed and Fatima have active Premium subscriptions
-- Ahmed and Fatima have a message thread with 2 messages
+- Ahmed and Fatima have a message thread with 2 clean (APPROVED) messages
+- Fatima (user2) and Musa (amberFlaggedUser) have a flagged thread: 1 APPROVED message + 1 PENDING message (contact-info sharing detected)
 - All photos use WebP format (180KB each)
 - All completed profiles have `onboardingCompletedAt` timestamp
 - Yusuf's profile is intentionally incomplete for testing
+- Admin scenario users (Musa, Khadija, Ibrahim, Sumayyah) are only for admin moderation testing; they cannot be meaningfully tested via `/auth/login` (no messaging threads, limited profile activity)

@@ -1,7 +1,7 @@
 ---
 name: halal-matrimony-mvp
 overview: Design an MVP for a halal, web-based Muslim matrimonial platform with simple, responsive UI, global reach, and basic subscription and messaging features.
-last_updated: '2026-03-10'
+last_updated: '2026-03-11'
 todos:
   - id: clarify-stack
     content: Confirm preferred tech stack (frontend framework, backend style, database) and hosting approach.
@@ -118,7 +118,9 @@ isProject: false
 - Message pagination: loads 10 latest messages initially, then 5 older on upscroll for efficient browsing
 - Message status indicators: "Sent", "Under Review" (for flagged), "Delivered", "Read"
 - Real-time inbox synchronization: threads move to top, unread counter updates without refresh
-- Admin moderation interface at `/admin/moderation` to review and approve/reject flagged messages
+- Admin moderation interface at `/admin/moderation` to review and approve/reject flagged messages ("Message Queue" link in admin nav)
+- **Reject + Warn** action persists a `ModerationWarning` record (DB table) linked to the message sender, issuing admin, and rejected message; minimum 5-character validation enforced
+- Separate **Reject** (no notification) and **Reject + Warn** buttons replace the previous single-button-plus-prompt pattern
 - Female-only wali reminder in chat interface (checks for FEMALE gender enum value)
 - Send Message button on profile view with subscription validation and link to pricing
 - WhatsApp-style timestamps (time for today, "Yesterday", day name within 7 days, date for older)
@@ -129,7 +131,7 @@ isProject: false
 - Admin-only moderation dashboard with context view, approval/rejection, and warning notifications
 - Unread counter badge in navigation header with real-time updates
 - Empty state handling (no "Loading..." for truly empty conversations)
-- 15 message action tests + 11 admin moderation tests (26 total) passing with comprehensive coverage
+- 15 message action tests + 14 admin moderation tests passing with comprehensive coverage
 - Fixed message ordering bug: added secondary sort by ID for deterministic ordering even with identical timestamps
 
 ### High-level goals

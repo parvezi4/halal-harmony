@@ -1,8 +1,8 @@
 # Phase 2: Messaging Implementation - Completion Summary
 
 **Status**: ✅ COMPLETE  
-**Date**: March 10, 2026  
-**Test Results**: ✅ 129 tests passing (13 suites)
+**Date**: March 11, 2026  
+**Test Results**: ✅ 197 tests passing (26 suites)
 
 ## Overview
 
@@ -46,13 +46,22 @@ Phase 2 messaging feature has been fully implemented with real-time updates, Sha
 - Queued messages re-evaluated after approval
 
 ### 5. Admin Moderation Interface
-- Dashboard at `/admin/moderation` for pending message review
+- Dashboard at `/admin/moderation` for pending message review (accessible via "Message Queue" link in admin nav)
 - Settings page at `/admin/moderation/settings` for configuration
 - Full thread context display (last 5 approved messages)
-- Approve/Reject/Warn actions
+- **Separate Reject and Reject + Warn action buttons** (replaced previous single-button + prompt pattern)
 - Detailed flagging reasons
 - Moderation statistics display
 - Admin-only access with role verification
+
+### 6. Reject + Warn Persistence
+- **Reject** dismisses a flagged message with no further action
+- **Reject + Warn** opens a browser prompt for warning text (minimum 5 characters), then atomically:
+  - Updates the message `moderationStatus` to `REJECTED`
+  - Creates a `ModerationWarning` record with `recipientId`, `issuerId`, `messageId`, and `content`
+- Short warning text (< 5 chars) is rejected with a validation error; message stays in queue
+- Cancelling the prompt aborts the action entirely
+- Warning records provide a persistent audit trail for repeat-offender tracking
 
 ### 6. UI/UX Enhancements
 - **Female-only Wali Reminder**: Conditional banner for female users reminding them to involve guardians
@@ -84,6 +93,19 @@ enum ModerationStatus {
   APPROVED
   REJECTED
 }
+
+model ModerationWarning {
+  id          String   @id @default(cuid())
+  recipientId String   // FK to User (message sender who received the warning)
+  issuerId    String   // FK to User (admin/moderator who issued the warning)
+  messageId   String   // FK to Message (the rejected message)
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([recipientId, createdAt])
+  @@index([issuerId, createdAt])
+  @@index([messageId])
+}
 ```
 
 ## Test Coverage
@@ -98,19 +120,20 @@ enum ModerationStatus {
 ✅ Thread listing with pagination  
 ✅ Thread-level blocking and authorization  
 
-### Admin Moderation Tests (11 tests) - `tests/actions/admin/moderation.test.ts`
+### Admin Moderation Tests (14 tests) - `tests/actions/admin/moderation.test.ts`
 ✅ Authorization checks (admin-only access)  
 ✅ Pending message queue retrieval  
 ✅ Message approval with queued message release  
-✅ Message rejection with optional warnings  
+✅ Message rejection (plain, no warning)  
+✅ Warning persistence when Reject+Warn used (ModerationWarning.create asserted)  
+✅ Warning length validation (< 5 chars returns error, no DB write)  
 ✅ Queued message re-evaluation  
 ✅ Moderation statistics  
 ✅ Thread context display  
 
 ### All Test Results
-- **Total Tests**: 129 passing
-- **Total Suites**: 13 passing
-- **Coverage**: Phase 1 (21 tests) + Phase 2 (26 tests) + Other (82 tests)
+- **Total Tests**: 197 passing
+- **Total Suites**: 26 passing
 
 ## Files Created/Modified
 

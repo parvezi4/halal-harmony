@@ -131,11 +131,12 @@ npm run typecheck         # Run TypeScript type checking
   - Content moderation (flagged vs clean messages)
   - Message queuing (preserves chronological order during review)
   - Thread listing and unread count
-- ✅ **Admin Moderation Actions** (`/app/actions/admin/moderation`) - 11 test cases covering:
+- ✅ **Admin Moderation Actions** (`/app/actions/admin/moderation`) - 14 test cases covering:
   - Authorization checks (admin-only access)
   - Pending message queue retrieval
   - Message approval with auto-release of queued messages
-  - Message rejection with warning notifications
+  - Message rejection (plain reject and reject + warn)
+  - Warning persistence to `ModerationWarning` table (with length validation)
   - Moderation statistics
 
 ### Pre-push quality gate
@@ -216,6 +217,15 @@ If your local database was created before moderator support was added, run `npx 
 | `zainab@example.com` | `Password123!` | ✅ Complete   | Female, annulled, **5 photos (max limit)**    |
 | `sara@example.com`   | `Password123!` | ✅ Complete   | Female, **age 14 (minimum age)**, no photos   |
 
+**Admin Moderation Test Scenarios:**
+
+| Email                            | Password       | Status           | Notes                                                    |
+| -------------------------------- | -------------- | ---------------- | -------------------------------------------------------- |
+| `musa.flagged@example.com`       | `Password123!` | ⚠️ Flagged (AMBER) | Male, 2 active reports — test Resolve + Suspend actions |
+| `khadija.flagged@example.com`    | `Password123!` | ⚠️ Flagged (RED)   | Female, risk-labeled only — no open reports             |
+| `ibrahim.suspended@example.com`  | `Password123!` | ⛔ Suspended (RED) | Male — confirm Suspend action is hidden for suspended users |
+| `sumayyah.reported@example.com`  | `Password123!` | ⚠️ Flagged (GREEN) | Female, report-driven row — test basic report resolution |
+
 **Admin Access:**
 
 | Email               | Password       | Role    | Notes                             |
@@ -246,7 +256,9 @@ If your local database was created before moderator support was added, run `npx 
   - Sexual content blocking
   - Contact info sharing prevention (phone numbers, emails, social media)
   - Financial solicitation blocking
-- **Admin Moderation**: Access `/admin/moderation` to review flagged messages
+- **Admin Moderation**: Access `/admin/moderation` via the "Message Queue" link in the admin nav to review flagged messages
+  - **Reject**: dismiss without notification
+  - **Reject + Warn**: persist a `ModerationWarning` record linked to the sender, issuer, and message (minimum 5 characters)
 - **Unread Counter**: Real-time badge updates on Messages link
 - **Female-only Reminders**: Wali involvement reminder appears for female users only in chat interface
 
