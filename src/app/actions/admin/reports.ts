@@ -22,6 +22,7 @@ export interface ReportSummary {
 
 export interface FlaggedUser {
   userId: string;
+  profileId: string;
   email: string;
   alias: string;
   riskLabel: 'GREEN' | 'AMBER' | 'RED';
@@ -328,6 +329,7 @@ export async function getFlaggedUsers(filters?: {
 
       return {
         userId: profile.userId,
+        profileId: profile.id,
         email: profile.user.email,
         alias: profile.alias || 'N/A',
         riskLabel: profile.riskLabel as 'GREEN' | 'AMBER' | 'RED',
