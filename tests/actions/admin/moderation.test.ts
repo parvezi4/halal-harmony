@@ -24,9 +24,13 @@ jest.mock('@/lib/prisma', () => ({
       update: jest.fn(),
       count: jest.fn(),
     },
+    moderationWarning: {
+      create: jest.fn(),
+    },
     messageThread: {
       update: jest.fn(),
     },
+    $transaction: jest.fn(),
   },
 }));
 jest.mock('@/lib/moderation/contentFilter');
@@ -36,10 +40,21 @@ jest.mock('@/lib/admin/access', () => ({
 
 const mockFilterContent = filterContent as jest.Mock;
 const mockVerifyAdminOrModerator = verifyAdminOrModerator as jest.Mock;
+const mockTx = prisma.$transaction as jest.Mock;
 
 describe('Admin Moderation Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTx.mockImplementation(async (callback) =>
+      callback({
+        message: {
+          update: prisma.message.update,
+        },
+        moderationWarning: {
+          create: prisma.moderationWarning.create,
+        },
+      })
+    );
   });
 
   describe('Authorization', () => {
@@ -301,6 +316,38 @@ describe('Admin Moderation Actions', () => {
         data: { moderationStatus: 'REJECTED' },
       });
       expect(prisma.messageThread.update).not.toHaveBeenCalled();
+    });
+
+    it('should persist warning when warning message is provided', async () => {
+      (prisma.message.findUnique as jest.Mock).mockResolvedValue({
+        threadId: 'thread123',
+        senderId: 'user123',
+        moderationStatus: 'PENDING',
+        createdAt: new Date(),
+      });
+      (prisma.message.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.message.update as jest.Mock).mockResolvedValue({});
+      (prisma.moderationWarning.create as jest.Mock).mockResolvedValue({});
+
+      const result = await rejectMessage('msg123', 'Please avoid sharing contact details.');
+
+      expect(result.success).toBe(true);
+      expect(prisma.moderationWarning.create).toHaveBeenCalledWith({
+        data: {
+          recipientId: 'user123',
+          issuerId: 'admin123',
+          messageId: 'msg123',
+          content: 'Please avoid sharing contact details.',
+        },
+      });
+    });
+
+    it('should validate warning message length when provided', async () => {
+      const result = await rejectMessage('msg123', 'no');
+
+      expect(result.success).toBe(false);
+      expect(result.errors?.general).toBe('Warning message must be at least 5 characters');
+      expect(prisma.message.findUnique).not.toHaveBeenCalled();
     });
 
     it('should release clean queued messages after rejection', async () => {

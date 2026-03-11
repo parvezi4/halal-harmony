@@ -50,16 +50,30 @@ export function ModerationQueueClient({ initialMessages }: ModerationQueueClient
   };
 
   const handleReject = async (messageId: string) => {
-    const warning = window.prompt(
-      'Optional: Enter a warning message for the sender (or leave blank):'
-    );
     setProcessingId(messageId);
-    const result = await rejectMessage(messageId, warning || undefined);
+    const result = await rejectMessage(messageId);
 
     if (result.success) {
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     } else {
       window.alert(result.errors?.general || 'Failed to reject message');
+    }
+    setProcessingId(null);
+  };
+
+  const handleRejectAndWarn = async (messageId: string) => {
+    const warning = window.prompt('Enter warning message for the sender (minimum 5 characters):');
+    if (warning === null) {
+      return;
+    }
+
+    setProcessingId(messageId);
+    const result = await rejectMessage(messageId, warning);
+
+    if (result.success) {
+      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+    } else {
+      window.alert(result.errors?.general || 'Failed to reject and warn');
     }
     setProcessingId(null);
   };
@@ -157,6 +171,13 @@ export function ModerationQueueClient({ initialMessages }: ModerationQueueClient
                 className="flex-1 rounded-lg border border-red-600 bg-red-600/10 px-4 py-2 text-sm font-semibold text-red-400 hover:bg-red-600/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isProcessing ? 'Processing...' : '✕ Reject'}
+              </button>
+              <button
+                onClick={() => handleRejectAndWarn(msg.id)}
+                disabled={isProcessing}
+                className="flex-1 rounded-lg border border-amber-600 bg-amber-600/10 px-4 py-2 text-sm font-semibold text-amber-300 hover:bg-amber-600/20 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isProcessing ? 'Processing...' : '✕ Reject + Warn'}
               </button>
             </div>
           </div>

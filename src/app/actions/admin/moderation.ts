@@ -244,12 +244,21 @@ export async function approveMessage(messageId: string) {
  * Reject a message and optionally send warning to sender
  */
 export async function rejectMessage(messageId: string, warningMessage?: string) {
-  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
+  const issuerId = access.userId;
 
-  if (!authorized) {
+  if (!access.authorized || !issuerId) {
     return {
       success: false,
       errors: { general: 'Not authorized' },
+    };
+  }
+
+  const normalizedWarning = warningMessage?.trim();
+  if (warningMessage !== undefined && (!normalizedWarning || normalizedWarning.length < 5)) {
+    return {
+      success: false,
+      errors: { general: 'Warning message must be at least 5 characters' },
     };
   }
 
@@ -278,20 +287,26 @@ export async function rejectMessage(messageId: string, warningMessage?: string) 
       };
     }
 
-    // Reject the message
-    await prisma.message.update({
-      where: { id: messageId },
-      data: {
-        moderationStatus: 'REJECTED',
-      },
-    });
+    // Reject message and optionally persist warning in one transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.message.update({
+        where: { id: messageId },
+        data: {
+          moderationStatus: 'REJECTED',
+        },
+      });
 
-    // TODO: Implement warning notification system
-    // For now, just log the warning
-    if (warningMessage) {
-      console.log(`Warning sent to user ${message.senderId}: ${warningMessage}`);
-      // Future: Create a Notification model and send warning
-    }
+      if (normalizedWarning) {
+        await tx.moderationWarning.create({
+          data: {
+            recipientId: message.senderId,
+            issuerId,
+            messageId,
+            content: normalizedWarning,
+          },
+        });
+      }
+    });
 
     // Release other queued messages (that aren't flagged for violations)
     const queuedMessages = await prisma.message.findMany({

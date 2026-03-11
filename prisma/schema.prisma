@@ -28,6 +28,8 @@ model User {
   profileViews   ProfileView[]   @relation("ViewerProfileViews")
   moderationAuditLogs       ModerationAuditLog[]      @relation("ModerationActor")
   moderationConfigUpdates   ModeratorPermissionConfig[] @relation("PermissionConfigUpdatedBy")
+  warningsReceived          ModerationWarning[]        @relation("WarningRecipient")
+  warningsIssued            ModerationWarning[]        @relation("WarningIssuer")
 }
 
 enum UserRole {
@@ -258,6 +260,7 @@ model Message {
   isFlagged        Boolean           @default(false)
   flaggedReason    String?
   moderationStatus ModerationStatus  @default(APPROVED)
+  warnings         ModerationWarning[]
 
   @@index([moderationStatus])
   @@index([threadId, createdAt])
@@ -267,6 +270,22 @@ enum ModerationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model ModerationWarning {
+  id          String   @id @default(cuid())
+  recipientId String
+  recipient   User     @relation("WarningRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  issuerId    String
+  issuer      User     @relation("WarningIssuer", fields: [issuerId], references: [id], onDelete: Cascade)
+  messageId   String
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([recipientId, createdAt])
+  @@index([issuerId, createdAt])
+  @@index([messageId])
 }
 
 model Report {
