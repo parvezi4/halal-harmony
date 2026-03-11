@@ -82,7 +82,14 @@ todos:
 isProject: false
 ---
 
-### Implementation snapshot (as of 2026-03-10)
+### Implementation snapshot (as of 2026-03-11)
+
+**Admin Panel Improvements Series (Complete ✅):**
+- Live stats badges on admin dashboard: Message Queue, Profile Queue, Photo Queue, Reports — all with real-time counts from DB, each card links to the corresponding queue page.
+- Flagged Users page at `/admin/flagged`: rows colour-coded GREEN / AMBER / RED by risk label; inline Resolve and Resolve + Suspend actions; Suspend action hidden for already-suspended users.
+- Reject + Warn persistence: rejected messages now atomically create a `ModerationWarning` DB record (recipientId, issuerId, messageId, content); minimum 5-character validation; separate Reject and Reject + Warn buttons in the moderation queue UI.
+- Seed data consistency: all completed profiles have mandatory onboarding fields filled; message threads are opposite-gender only (Islamic rule enforced in seed).
+- 197 tests total (26 suites) passing.
 
 **Phase 3 - Admin Auth Hardening (Complete ✅):**
 - Split login portals fully implemented and tested (members → `/auth/login`, admins/moderators → `/admin/login`).

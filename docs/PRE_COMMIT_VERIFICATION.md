@@ -1,172 +1,324 @@
-# Pre-Commit Verification Report
+# Pre-Commit Verification & Manual QA Guide
 
-**Date**: March 10, 2026  
-**Status**: ✅ ALL CHECKS PASSED
-
-## Test Results
-```
-Test Suites:  13 passed, 13 total
-Tests:       129 passed, 129 total
-Time:        ~6 seconds
-```
-
-### Phase 2 Tests (26 tests)
-- ✅ Messaging actions (15 tests) - All passing
-- ✅ Admin moderation (11 tests) - All passing
-
-### Phase 1 Tests (21 tests)
-- ✅ Register API (7 tests)
-- ✅ Favorites API (9 tests)
-- ✅ Favorites actions (5 tests)
-
-### Other Tests (82 tests)
-- ✅ Dashboard actions/API
-- ✅ Search API and profile routes
-- ✅ Profile photo constraints
-- ✅ Onboarding validation
-- ✅ Profile CRUD operations
-
-## Documentation Updates
-
-| File | Status | Changes |
-|------|--------|---------|
-| `PLAN.md` | ✅ Updated | Phase 2 marked complete, implementation snapshot updated |
-| `README.md` | ✅ Updated | Phase 2 test coverage, features, and credentials added |
-| `wireframes.md` | ✅ Updated | Messaging UI wireframes with implementations notes |
-| `PHASE2_COMPLETION.md` | ✅ Created | Comprehensive Phase 2 completion summary |
-| `docs/specs/phase2-messaging.yaml` | ✅ Created | Detailed Phase 2 specifications with user stories |
-
-## Files Modified (11 files)
-
-### Core Application Changes
-- `src/auth.ts` - Added gender to session, profile fetch
-- `src/app/(member)/layout.tsx` - Added unread counter component
-- `src/app/(member)/messages/page.tsx` - Server-side thread loading
-- `src/app/(member)/search/[userId]/page.tsx` - Added Send Message button
-
-### Configuration
-- `jest.config.ts` - Bad-words transform configuration
-- `package.json` - Added bad-words dependency
-- `prisma/schema.prisma` - Moderation fields added to Message model
-
-### Documentation
-- `README.md` - Updated test coverage section
-- `docs/PLAN.md` - Phase 2 completion status
-- `docs/wireframes.md` - Updated wireframes
-
-## Files Created (18+ files)
-
-### Messaging Components
-- `src/app/(member)/messages/ChatView.tsx` - One-on-one chat UI
-- `src/app/(member)/messages/MessagesPageClient.tsx` - Inbox container
-- `src/app/(member)/messages/MessagesCounter.tsx` - Unread badge
-- `src/app/(member)/messages/NewConversationModal.tsx` - Start conversation
-- `src/app/(member)/messages/useMessageSSE.ts` - Real-time hook
-- `src/app/(member)/search/[userId]/SendMessageButton.tsx` - Profile action
-
-### Server Actions
-- `src/app/actions/messages.ts` - Message operations
-- `src/app/actions/admin/moderation.ts` - Admin moderation
-
-### API Routes
-- `src/app/api/messages/events/route.ts` - SSE endpoint
-- `src/app/api/messages/unread/route.ts` - Unread count
-
-### Admin Interface
-- `src/app/admin/layout.tsx` - Admin layout
-- `src/app/admin/moderation/page.tsx` - Moderation queue
-- `src/app/admin/moderation/ModerationQueueClient.tsx` - Queue component
-- `src/app/admin/moderation/settings/page.tsx` - Settings page
-
-### Libraries
-- `src/lib/moderation/contentFilter.ts` - Filter engine
-- `src/lib/moderation/shariah-patterns.ts` - Patterns
-- `src/lib/subscription/checkActiveSubscription.ts` - Subscription check
-
-### Tests & Documentation
-- `tests/actions/messages.test.ts` - 15 messaging tests
-- `tests/actions/admin/moderation.test.ts` - 11 moderation tests
-- `docs/specs/phase2-messaging.yaml` - Detailed specifications
-- `PHASE2_COMPLETION.md` - Completion summary
-
-## Quality Assurance Checklist
-
-### Functionality
-- [x] Real-time messaging with SSE
-- [x] Subscription-based initiation
-- [x] Content moderation (pre-moderation)
-- [x] Admin approval/rejection workflow
-- [x] Message pagination with scroll preservation
-- [x] Unread counter updates
-- [x] Female-only wali reminders
-- [x] Send Message from profile
-- [x] Thread auto-selection with focus
-
-### Testing
-- [x] All 129 tests passing
-- [x] No regressions in Phase 1
-- [x] Comprehensive Phase 2 coverage (26 tests)
-- [x] Mock fixes for bad-words import
-
-### Code Quality
-- [x] TypeScript compilation successful
-- [x] ESLint checks pass
-- [x] Pre-commit hook ready
-- [x] Pre-push hook ready
-
-### Documentation
-- [x] PLAN.md updated with completion status
-- [x] README.md updated with test coverage
-- [x] Wireframes updated with implementations
-- [x] Detailed specifications documented
-- [x] Completion summary provided
-
-### Database
-- [x] Schema migration ready
-- [x] Message model with moderation fields
-- [x] Proper indexes for performance
-
-## Key Metrics
-
-| Metric | Value |
-|--------|-------|
-| Total Tests | 129 ✅ |
-| Test Suites | 13 ✅ |
-| Phase 2 Tests | 26 ✅ |
-| Test Pass Rate | 100% ✅ |
-| Files Modified | 11 |
-| Files Created | 18+ |
-| Lines of Code Added | 2500+ |
-| Components | 6 new |
-| Server Actions | 2 new |
-| API Routes | 2 new |
-| Admin Pages | 4 new |
-| Libraries | 3 new |
-| Test Files | 2 new |
-
-## Ready for Commit ✅
-
-All checks pass. The following changes are ready to commit:
-
-```bash
-git add .
-git commit -m "feat(phase2): Complete real-time messaging system"
-git push
-```
-
-## Next Steps
-
-1. **Code Review** - Request review from team
-2. **Testing** - Verify on staging environment
-3. **Deployment** - Deploy to production when approved
-4. **Monitoring** - Monitor real-time SSE performance
-5. **Phase 3 Planning** - Begin work on typing indicators, read receipts, etc.
+**Last Updated**: March 11, 2026
+**Current Test Results**: ✅ 197 tests passing (26 suites)
 
 ---
 
-**Generated**: March 10, 2026 09:54 UTC  
-**Environment**: Development  
-**Database**: PostgreSQL (via Prisma)  
-**Node Version**: 18+  
-**Test Framework**: Jest  
-**Status**: ✅ READY FOR PRODUCTION
+## Automated Test Results (current)
+
+```
+Test Suites:  26 passed, 26 total
+Tests:       197 passed, 197 total
+Time:        ~10 seconds
+```
+
+### Test Breakdown
+
+| Suite | Tests |
+|-------|-------|
+| Register API | 7 |
+| Favorites API | 9 |
+| Favorites Actions | 5 |
+| Messaging Actions | 15 |
+| Admin Moderation Actions | 14 |
+| Admin Auth (split login, role validation) | 15 |
+| Dashboard Actions/API | varies |
+| Search API + Profile Routes | varies |
+| Photo Constraints | varies |
+| Onboarding Validation | varies |
+| Profile CRUD | varies |
+
+---
+
+## Admin Panel Commits (current series)
+
+| # | Commit | Feature |
+|---|--------|---------|
+| 1 | `41e34ab` | Live stats badges on admin dashboard cards |
+| 2 | `7cf291d` | Flagged users inline actions + risk colour coding |
+| 3 | `8737b9b` | Reject + Warn moderation persistence (`ModerationWarning` table) |
+
+---
+
+## Preparation
+
+```bash
+# 1. Sync schema (adds ModerationWarning table if not yet present)
+npx prisma db push
+
+# 2. Seed test data (wipes and re-populates)
+npm run prisma:seed
+
+# 3. Start dev server
+npm run dev
+# Open http://localhost:3000
+```
+
+---
+
+## Test Accounts Reference
+
+### Regular Members (`/auth/login`)
+
+| Email | Password | Notes |
+|-------|----------|-------|
+| `ahmed@example.com` | `Password123!` | Male, married, premium subscription |
+| `fatima@example.com` | `Password123!` | Female, virgin, premium subscription |
+| `ali@example.com` | `Password123!` | Male, separated, free member |
+| `aisha@example.com` | `Password123!` | Female — onboarding incomplete |
+| `yusuf@example.com` | `Password123!` | Male — onboarding incomplete |
+| `zainab@example.com` | `Password123!` | Female, 5 photos (max limit) |
+| `sara@example.com` | `Password123!` | Female, age 14 (minimum) |
+
+### Admin Scenario Profiles (visible in `/admin` only)
+
+| Email | Password | Risk | Notes |
+|-------|----------|------|-------|
+| `musa.flagged@example.com` | `Password123!` | AMBER | 2 active reports, flagged thread |
+| `khadija.flagged@example.com` | `Password123!` | RED | Risk-labeled, no reports |
+| `ibrahim.suspended@example.com` | `Password123!` | RED | SUSPENDED status |
+| `sumayyah.reported@example.com` | `Password123!` | GREEN | 1 open report |
+
+### Admin / Moderator (`/admin/login`)
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@example.com` | `Password123!` | ADMIN |
+| `moderator@example.com` | `Password123!` | MODERATOR |
+
+> ⚠️ Regular members use `/auth/login`. Admins/moderators use `/admin/login`. Using the wrong portal blocks login and shows a corrective message.
+
+---
+
+## Manual Test Checklist
+
+### 1. Admin Login & Access Control
+
+- [ ] Go to `/admin/login` → login as `admin@example.com` → lands on `/admin`
+- [ ] Go to `/auth/login` → try `admin@example.com` → blocked with "use /admin/login" guidance
+- [ ] Go to `/admin/login` → login as `moderator@example.com` → lands on `/admin`
+- [ ] Go to `/auth/login` → try `moderator@example.com` → blocked with "use /admin/login" guidance
+- [ ] Logged in as moderator, navigate to `/admin/audit-log` → redirected to `/admin/moderation`
+- [ ] Logout from admin shell → redirected to `/admin/login`
+
+---
+
+### 2. Admin Dashboard — Stats Badges (Commit 1)
+
+> URL: `/admin`
+
+Expected counts after a clean seed:
+
+| Badge | Expected count | Links to |
+|-------|---------------|----------|
+| Message Queue | **1** | `/admin/moderation` |
+| Profile Queue | **2** | `/admin/moderation/profiles` |
+| Photo Queue | **5** | `/admin/moderation/photos` |
+| Reports (open + reviewing) | **3** | `/admin/reports` |
+
+- [ ] All 4 badge numbers are correct
+- [ ] Each card is clickable and navigates to the right page
+- [ ] Badges are hidden / show 0 when count is 0 (verify after approving all items)
+
+---
+
+### 3. Flagged Users — Inline Actions + Risk Colours (Commit 2)
+
+> URL: `/admin/flagged`
+
+- [ ] **GREEN row** — Sumayyah: green badge colour, Resolve action visible
+- [ ] **AMBER row** — Musa: amber badge colour, **both** Resolve and Resolve + Suspend buttons visible
+- [ ] **RED row** — Khadija: red badge colour, appropriate actions visible
+- [ ] **SUSPENDED + RED row** — Ibrahim: Suspended status badge shown; Suspend action is **absent** (already suspended)
+- [ ] Resolve + Suspend on Musa → confirm dialog → verify in Prisma Studio (`npx prisma studio`) that `Profile.status` = `SUSPENDED`
+
+---
+
+### 4. Message Queue — Approve / Reject / Reject + Warn (Commit 3)
+
+> URL: `/admin/moderation`  
+> After a fresh seed: 1 pending message (Musa's contact-sharing message in the Fatima–Musa thread)
+
+#### 4a. Approve
+
+- [ ] Click **✓ Approve** → message disappears from queue
+- [ ] Dashboard "Message Queue" badge goes to **0**
+- [ ] Re-seed before next sub-test
+
+#### 4b. Reject (no warning)
+
+- [ ] Click **✕ Reject** → message disappears from queue
+- [ ] Open Prisma Studio → `ModerationWarning` table has **0 rows**
+- [ ] Re-seed before 4c
+
+#### 4c. Reject + Warn — valid warning
+
+- [ ] Click **✕ Reject + Warn** → browser prompt appears
+- [ ] Enter a message ≥ 5 characters (e.g. "Please keep conversations on-platform")
+- [ ] Click OK → message disappears from queue
+- [ ] Prisma Studio → `ModerationWarning` has **1 new row** with:
+  - `recipientId` = Musa's user ID
+  - `issuerId` = admin's user ID
+  - `messageId` = the rejected message ID
+  - `content` = the text you entered
+
+#### 4d. Reject + Warn — short warning (validation error)
+
+- [ ] Re-seed; click **✕ Reject + Warn**
+- [ ] Enter < 5 characters (e.g. "no") → click OK
+- [ ] **Error toast/message** appears: "Warning message must be at least 5 characters"
+- [ ] Message **remains** in the queue
+- [ ] `ModerationWarning` table: **no new rows**
+
+#### 4e. Reject + Warn — prompt cancelled
+
+- [ ] Click **✕ Reject + Warn** → click Cancel on browser prompt
+- [ ] Nothing changes; message stays in queue
+
+---
+
+### 5. Profile Queue
+
+> URL: `/admin/moderation/profiles`
+
+- [ ] Page loads with pending profiles (expected: 2 after seed — Yusuf and Aisha as PENDING_REVIEW)
+- [ ] Each row shows: alias, gender, country, onboarding completion date, photo count
+- [ ] Click **Approve** → row disappears, dashboard profile count decrements
+- [ ] Click **Suspend** → reason prompt → row disappears (status set to SUSPENDED)
+
+---
+
+### 6. Photo Queue
+
+> URL: `/admin/moderation/photos`
+
+- [ ] Page loads; badge count matches dashboard (**5** after seed)
+- [ ] Photos show user alias, risk level, MIME type, file size
+- [ ] Search by user name works
+- [ ] Filter by risk level (GREEN / AMBER / RED / ALL) works
+- [ ] Click **Approve** → photo leaves PENDING view
+- [ ] Click **Reject** → photo removed from queue
+- [ ] Click **Blur** → photo flagged (modesty preservation — stays visible but blurred)
+- [ ] Each action creates an entry in the Audit Log
+
+---
+
+### 7. Reports
+
+> URL: `/admin/reports`
+
+After seed, expected 3 active reports:
+
+| # | Reporter | Reported | Status | Reason |
+|---|----------|----------|--------|--------|
+| 1 | Fatima | Musa | OPEN | Off-platform contact pushing |
+| 2 | Fatima | Musa | REVIEWING | Ignored on-platform requests |
+| 3 | Ahmed | Sumayyah | OPEN | Suspicious opening messages |
+
+- [ ] All 3 reports visible in OPEN / REVIEWING filter
+- [ ] Status filter (All / Open / Reviewing / Resolved / Dismissed) works
+- [ ] Changing a report status updates the badge inline
+- [ ] A 4th resolved report (Fatima → Ibrahim) visible under RESOLVED filter
+
+---
+
+### 8. Subscriptions
+
+> URL: `/admin/subscriptions`
+
+- [ ] Page loads with Ahmed and Fatima's active Premium subscriptions
+- [ ] Status filter (ACTIVE / EXPIRED / CANCELLED / ALL) works
+- [ ] Search by name or email works
+- [ ] Sort by start date / end date / created date works
+- [ ] Each row shows: alias, email, plan name, status, days remaining
+
+---
+
+### 9. Members
+
+> URL: `/admin/members`
+
+- [ ] Paginated list loads (13 users total after seed)
+- [ ] Filter by role (ADMIN / MODERATOR / MEMBER) works
+- [ ] Filter by profile status (PENDING_REVIEW / APPROVED / SUSPENDED) works
+- [ ] Search by name or email works
+- [ ] Risk badge (GREEN / AMBER / RED) shows for flagged users (Musa, Khadija, Ibrahim, Sumayyah)
+- [ ] **Suspend** available for APPROVED members; prompt for reason; status changes
+- [ ] **Reactivate** available for SUSPENDED members; restores APPROVED
+
+---
+
+### 10. Audit Log (Admin-only)
+
+> URL: `/admin/audit-log`
+
+- [ ] Loads for `admin@example.com`; redirected to `/admin/moderation` for moderator
+- [ ] After running actions in tests 4–9 above, corresponding entries appear:
+  - PHOTO_APPROVED, PHOTO_REJECTED, PHOTO_BLURRED
+  - PROFILE_APPROVED, PROFILE_SUSPENDED
+  - MEMBER_SUSPENDED, MEMBER_REACTIVATED
+  - REPORT_STATUS_UPDATED
+  - RISK_LABEL_UPDATED
+- [ ] Filter by action type works
+- [ ] Filter by actor (admin email) works
+- [ ] Each entry shows: timestamp, action type, actor email, target type + ID, notes
+
+---
+
+### 11. Moderation Settings
+
+> URL: `/admin/moderation/settings`
+
+- [ ] Shows current moderation type: Pattern Recognition (active) / AI/NLP (visible but disabled — "Coming Soon")
+- [ ] Moderation workflow toggle: Pre-moderation / Post-moderation visible and saveable
+- [ ] Settings persist on page refresh
+
+---
+
+### 12. Regression — Member-Facing Features
+
+- [ ] Login as `ahmed@example.com` at `/auth/login` → dashboard loads normally
+- [ ] Navigate to `/search` → only opposite-gender (female) profiles shown
+- [ ] Open a profile → "Send Message" button visible (Ahmed has premium)
+- [ ] Click Send Message → navigates to `/messages` with thread pre-selected
+- [ ] Send a clean message → appears immediately with no "Under Review" indicator
+- [ ] Login as `aisha@example.com` → redirected to `/onboarding` (profile incomplete)
+- [ ] Try navigating to `/dashboard`, `/search`, `/messages` as Aisha → all redirect to `/onboarding`
+- [ ] Login as `fatima@example.com` → `/messages` shows Ahmed thread; unread badge visible if unread
+
+---
+
+### 13. Automated Quality Gates
+
+Run locally before pushing:
+
+```bash
+npm run lint        # ESLint — must exit 0
+npx tsc --noEmit    # TypeScript — must exit 0
+npx jest            # Must show: 197 passed, 26 suites
+```
+
+---
+
+## Known Acceptable Behaviour
+
+- Browser `window.prompt` is used for Reject+Warn warning text and Suspend reason. These are not covered by automated tests — the manual steps above are required.
+- Prisma Studio (`npx prisma studio`) is needed to confirm `ModerationWarning` row creation in test 4c.
+- Photo Queue image rendering depends on files in `public/uploads/` being present after seed.
+
+---
+
+## Sign-Off
+
+Confirm the following before marking the admin panel series as done:
+
+- [ ] All manual test steps above passed
+- [ ] No regressions in member-facing features (section 12)
+- [ ] `npm run lint && npx tsc --noEmit && npx jest` all green
+
+---
+
+## What's Next
+
+All planned admin panel commits (1–3) are complete. The only remaining `pending` item in PLAN.md is **`plan-payments`** — Stripe subscription management UI (checkout flow, plan selection, subscription lifecycle). All other items are marked `future`.
