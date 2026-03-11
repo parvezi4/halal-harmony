@@ -4,10 +4,12 @@
 
 ### Structure
 
-- **`phase1-user-stories.yaml`**: Detailed user stories and acceptance criteria for Phase 1 (auth, onboarding/profile creation, basic search, and dashboard).
-- Future phases:
-  - You can add files like `phase2-subscriptions-messaging.yaml`, `phase3-moderation.yaml`, or feature-specific specs.
-  - For more narrative documents, add markdown files such as `product-vision.md`, `domain-model.md`, or `api-design.md`.
+| File | Phase | Status | Description |
+|------|-------|--------|-------------|
+| `phase1-user-stories.yaml` | 1 | ✅ completed | User stories and acceptance criteria for auth, onboarding/profile creation, basic search, and dashboard |
+| `phase2-messaging.yaml` | 2 | ✅ completed | User stories for real-time messaging, subscription gating, Shariah-compliant content moderation, and admin review workflow — includes `ModerationWarning` persistence spec |
+
+For future phases, add files following the same naming pattern (e.g. `phase3-payments.yaml`) or topic-scoped files (e.g. `stripe-subscription-flow.yaml`). For narrative documents, use Markdown (e.g. `product-vision.md`, `domain-model.md`).
 
 ### Recommended workflow
 

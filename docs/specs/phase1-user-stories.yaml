@@ -1,6 +1,7 @@
 phase: 1
 name: 'Core foundation: auth, onboarding, profile, basic search'
-last_updated: '2026-03-10'
+last_updated: '2026-03-11'
+status: completed
 
 epics:
   - id: auth
