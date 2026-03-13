@@ -139,12 +139,12 @@ npm run typecheck         # Run TypeScript type checking
   - Warning persistence to `ModerationWarning` table (with length validation)
   - Moderation statistics
 
-### Pre-push quality gate
+- ✅ **Admin Auth Utils** (`/app/admin/login/auth-utils`, `/app/auth/login/auth-utils`) - tests covering:
+  - Domain isolation: admin credentials rejected at member portal, member credentials rejected at admin portal
+  - SUPERADMIN, ADMIN, and MODERATOR all accepted at `/admin/login`
+  - Only MEMBER role accepted at `/auth/login`
 
-A git pre-push hook automatically runs before every push to `master`:
-
-1. **API tests** - Ensures all route handlers work correctly
-2. **Linting** - Checks code style and catches common errors
+- ✅ **Admin RBAC** - capability-gated dashboard, privileged user management, SUPERADMIN protection
 3. **Type checking** - Validates TypeScript types across the codebase
 
 If any check fails, the push is blocked. This prevents bugs from reaching `master`.
@@ -230,12 +230,14 @@ If your local database was created before moderator support was added, run `npx 
 
 | Email               | Password       | Role    | Notes                             |
 | ------------------- | -------------- | ------- | --------------------------------- |
-| `admin@example.com` | `Password123!` | `ADMIN` | Access to moderation queue /admin |
-| `moderator@example.com` | `Password123!` | `MODERATOR` | Access based on admin-configurable permissions |
+| `admin@example.com` | `Password123!` | `SUPERADMIN` | Protected — cannot be deleted; can create/delete admins and moderators |
+| `ops.admin@example.com` | `Password123!` | `ADMIN` | Full admin privileges; deletable by superadmin |
+| `moderator@example.com` | `Password123!` | `MODERATOR` | Access based on capability toggles configured in Settings |
 
 - Regular members must use `/auth/login`.
 - Admins and moderators must use `/admin/login`.
 - If you use the wrong portal, the app blocks login and tells you which route to use.
+- `AdminAccount` and `MemberAccount` are separate DB tables — member credentials do not work in the admin portal, and vice versa.
 
 **Onboarding Testing:**
 

@@ -57,6 +57,7 @@ describe('Admin Permission Actions', () => {
         canModerateMessages: true,
         canVerifyProfiles: true,
         canVerifyPhotos: true,
+        canManageMembers: true,
         canInspectSubscriptions: true,
         canManageReports: true,
         canUpdateRiskLabels: true,
@@ -73,6 +74,7 @@ describe('Admin Permission Actions', () => {
         canModerateMessages: true,
         canVerifyProfiles: false,
         canVerifyPhotos: true,
+        canManageMembers: false,
         canInspectSubscriptions: false,
         canManageReports: true,
         canUpdateRiskLabels: false,
@@ -86,6 +88,7 @@ describe('Admin Permission Actions', () => {
         canModerateMessages: true,
         canVerifyProfiles: false,
         canVerifyPhotos: true,
+        canManageMembers: false,
         canInspectSubscriptions: false,
         canManageReports: true,
         canUpdateRiskLabels: false,
@@ -99,6 +102,7 @@ describe('Admin Permission Actions', () => {
       canModerateMessages: true,
       canVerifyProfiles: true,
       canVerifyPhotos: false,
+      canManageMembers: true,
       canInspectSubscriptions: true,
       canManageReports: false,
       canUpdateRiskLabels: true,
@@ -126,6 +130,7 @@ describe('Admin Permission Actions', () => {
       });
       (prisma.moderatorPermissionConfig.upsert as jest.Mock).mockResolvedValue({
         ...payload,
+        canManageMembers: true,
         updatedAt: new Date('2026-03-10T03:00:00.000Z'),
       });
 
@@ -146,6 +151,7 @@ describe('Admin Permission Actions', () => {
           canModerateMessages: true,
           canVerifyProfiles: true,
           canVerifyPhotos: true,
+          canManageMembers: true,
           canInspectSubscriptions: true,
           canManageReports: true,
           canUpdateRiskLabels: true,

@@ -1,7 +1,15 @@
+import { redirect } from 'next/navigation';
 import { getPendingMessages, getModerationStats } from '@/app/actions/admin/moderation';
 import { ModerationQueueClient } from './ModerationQueueClient';
+import { verifyAdminOrModerator } from '@/lib/admin/access';
+import { ADMIN_CAPABILITIES } from '@/lib/admin/capabilities';
 
 export default async function ModerationPage() {
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
+
+  if (!access.userId) redirect('/admin/login');
+  if (!access.authorized) redirect('/admin');
+
   const [pendingResult, statsResult] = await Promise.all([
     getPendingMessages(),
     getModerationStats(),

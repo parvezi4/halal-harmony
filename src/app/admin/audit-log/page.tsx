@@ -5,10 +5,10 @@ import AuditLogClient from './AuditLogClient';
 export default async function AuditLogPage() {
   const access = await verifyAdminOrModerator();
 
-  if (!access.userId) redirect('/auth/login');
+  if (!access.userId) redirect('/admin/login');
   if (!access.authorized) redirect('/dashboard');
   // Admin-only page — moderators see a message from the client action
-  if (access.role !== 'ADMIN') redirect('/admin/moderation');
+  if (access.role !== 'SUPERADMIN' && access.role !== 'ADMIN') redirect('/admin/moderation');
 
   return <AuditLogClient />;
 }

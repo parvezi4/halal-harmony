@@ -13,8 +13,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
+    const [existingUser, existingMemberAccount, existingAdminAccount] = await Promise.all([
+      prisma.user.findUnique({ where: { email }, select: { id: true } }),
+      prisma.memberAccount.findUnique({ where: { email }, select: { id: true } }),
+      prisma.adminAccount.findUnique({ where: { email }, select: { id: true } }),
+    ]);
+
+    if (existingUser || existingMemberAccount || existingAdminAccount) {
       return NextResponse.json(
         { error: "An account with this email already exists" },
         { status: 400 }
@@ -26,8 +31,15 @@ export async function POST(req: Request) {
     const user = await prisma.user.create({
       data: {
         email,
-        passwordHash
-      }
+        passwordHash,
+        role: 'MEMBER',
+        memberAccount: {
+          create: {
+            email,
+            passwordHash,
+          },
+        },
+      },
     });
 
     return NextResponse.json({ id: user.id, email: user.email });

@@ -7,10 +7,10 @@ export default async function ModerationSettingsPage() {
   const access = await verifyAdminOrModerator();
 
   if (!access.userId) {
-    redirect('/auth/login');
+    redirect('/admin/login');
   }
 
-  if (access.role !== 'ADMIN') {
+  if (access.role !== 'SUPERADMIN' && access.role !== 'ADMIN') {
     redirect('/admin/moderation');
   }
 

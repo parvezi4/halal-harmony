@@ -11,6 +11,8 @@ async function main() {
 
   await prisma.moderationAuditLog.deleteMany();
   await prisma.moderatorPermissionConfig.deleteMany();
+  await prisma.adminAccount.deleteMany();
+  await prisma.memberAccount.deleteMany();
   await prisma.message.deleteMany();
   await prisma.messageThread.deleteMany();
   await prisma.report.deleteMany();
@@ -37,6 +39,15 @@ async function main() {
   const adminUser = await prisma.user.create({
     data: {
       email: 'admin@example.com',
+      passwordHash,
+      role: 'SUPERADMIN',
+      emailVerified: new Date(),
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'ops.admin@example.com',
       passwordHash,
       role: 'ADMIN',
       emailVerified: new Date(),
@@ -687,12 +698,45 @@ async function main() {
     ],
   });
 
+  const seededUsers = await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      passwordHash: true,
+      role: true,
+    },
+  });
+
+  for (const user of seededUsers) {
+    if (user.role === 'MEMBER') {
+      await prisma.memberAccount.create({
+        data: {
+          userId: user.id,
+          email: user.email,
+          passwordHash: user.passwordHash,
+        },
+      });
+      continue;
+    }
+
+    await prisma.adminAccount.create({
+      data: {
+        userId: user.id,
+        email: user.email,
+        passwordHash: user.passwordHash,
+      },
+    });
+  }
+
   console.log('\n✅ Seed complete! Test users created:\n');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('📧 Email                    | 🔑 Password     | 📋 Status');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(
-    'admin@example.com           | Password123!   | ✅ ADMIN (full moderation access)'
+    'admin@example.com           | Password123!   | ✅ SUPERADMIN (protected account)'
+  );
+  console.log(
+    'ops.admin@example.com       | Password123!   | ✅ ADMIN (deletable by superadmin)'
   );
   console.log(
     'moderator@example.com       | Password123!   | ✅ MODERATOR (permissions configurable)'

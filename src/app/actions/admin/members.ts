@@ -61,7 +61,7 @@ export interface MemberStats {
 export async function getMembers(
   filters: MemberFilters = {}
 ): Promise<{ success: false; error: string } | { success: true; data: MembersResult }> {
-  const access = await verifyAdminOrModerator();
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MANAGE_MEMBERS);
   if (!access.authorized || !access.userId) {
     return { success: false, error: 'Unauthorized' };
   }
@@ -198,7 +198,7 @@ export async function getMembers(
 export async function getMemberStats(): Promise<
   { success: false; error: string } | { success: true; data: MemberStats }
 > {
-  const access = await verifyAdminOrModerator();
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MANAGE_MEMBERS);
   if (!access.authorized || !access.userId) {
     return { success: false, error: 'Unauthorized' };
   }
@@ -232,7 +232,7 @@ export async function suspendMember(
   userId: string,
   reason: string
 ): Promise<{ success: boolean; error?: string }> {
-  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.VERIFY_PROFILES);
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MANAGE_MEMBERS);
   if (!access.authorized || !access.userId) {
     return { success: false, error: 'Unauthorized' };
   }
@@ -278,7 +278,7 @@ export async function reactivateMember(
   userId: string,
   reason?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.VERIFY_PROFILES);
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MANAGE_MEMBERS);
   if (!access.authorized || !access.userId) {
     return { success: false, error: 'Unauthorized' };
   }

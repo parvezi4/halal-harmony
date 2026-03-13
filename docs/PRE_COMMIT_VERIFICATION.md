@@ -1,7 +1,7 @@
 # Pre-Commit Verification & Manual QA Guide
 
-**Last Updated**: March 11, 2026
-**Current Test Results**: ✅ 197 tests passing (26 suites)
+**Last Updated**: March 13, 2026
+**Current Test Results**: ✅ 200 tests passing (26 suites)
 
 ---
 
@@ -9,7 +9,7 @@
 
 ```
 Test Suites:  26 passed, 26 total
-Tests:       197 passed, 197 total
+Tests:       200 passed, 200 total
 Time:        ~10 seconds
 ```
 
@@ -84,8 +84,9 @@ npm run dev
 
 | Email | Password | Role |
 |-------|----------|------|
-| `admin@example.com` | `Password123!` | ADMIN |
-| `moderator@example.com` | `Password123!` | MODERATOR |
+| `admin@example.com` | `Password123!` | SUPERADMIN (protected — cannot be deleted) |
+| `ops.admin@example.com` | `Password123!` | ADMIN (deletable by superadmin) |
+| `moderator@example.com` | `Password123!` | MODERATOR (permissions configurable) |
 
 > ⚠️ Regular members use `/auth/login`. Admins/moderators use `/admin/login`. Using the wrong portal blocks login and shows a corrective message.
 
@@ -95,11 +96,13 @@ npm run dev
 
 ### 1. Admin Login & Access Control
 
-- [ ] Go to `/admin/login` → login as `admin@example.com` → lands on `/admin`
+- [ ] Go to `/admin/login` → login as `admin@example.com` (SUPERADMIN) → lands on `/admin`
+- [ ] Go to `/admin/login` → login as `ops.admin@example.com` (ADMIN) → lands on `/admin`
 - [ ] Go to `/auth/login` → try `admin@example.com` → blocked with "use /admin/login" guidance
 - [ ] Go to `/admin/login` → login as `moderator@example.com` → lands on `/admin`
 - [ ] Go to `/auth/login` → try `moderator@example.com` → blocked with "use /admin/login" guidance
 - [ ] Logged in as moderator, navigate to `/admin/audit-log` → redirected to `/admin/moderation`
+- [ ] Logged in as moderator, navigate to `/admin/moderation/settings` → redirected to `/admin/moderation`
 - [ ] Logout from admin shell → redirected to `/admin/login`
 
 ---
@@ -270,13 +273,73 @@ After seed, expected 3 active reports:
 
 > URL: `/admin/moderation/settings`
 
+- [ ] Login as `admin@example.com` → Settings page loads
 - [ ] Shows current moderation type: Pattern Recognition (active) / AI/NLP (visible but disabled — "Coming Soon")
 - [ ] Moderation workflow toggle: Pre-moderation / Post-moderation visible and saveable
 - [ ] Settings persist on page refresh
 
 ---
 
-### 12. Regression — Member-Facing Features
+### 12. Admin RBAC — Privileged User Management
+
+> URL: `/admin/moderation/settings` → scroll to "Privileged Users" section
+
+#### 12a. SUPERADMIN protection
+
+- [ ] Login as `admin@example.com` (SUPERADMIN) → Settings → Privileged Users table shows 3 rows (superadmin, ops.admin, moderator)
+- [ ] SUPERADMIN row (`admin@example.com`) shows "Protected" label — **no Delete button**
+- [ ] Verify `ops.admin@example.com` and `moderator@example.com` each show a Delete button
+
+#### 12b. Create a new moderator
+
+- [ ] In the Create Privileged User form: enter `newmod@example.com`, password `Password123!`, role = MODERATOR → Create
+- [ ] New row appears in the table with role MODERATOR
+- [ ] Log out; log in at `/admin/login` as `newmod@example.com` / `Password123!` → lands on `/admin`
+
+#### 12c. Delete a moderator
+
+- [ ] Login as SUPERADMIN or ADMIN → Settings → click Delete on `newmod@example.com` → confirm → row disappears
+- [ ] Try to login as `newmod@example.com` → blocked (account no longer exists)
+
+#### 12d. ADMIN cannot delete ADMIN
+
+- [ ] Login as `ops.admin@example.com` (ADMIN) → Settings → only moderator rows have Delete button; `admin@example.com` shows Protected; `ops.admin@example.com` (self) has no delete button
+
+#### 12e. Only SUPERADMIN can create ADMIN accounts
+
+- [ ] Login as `ops.admin@example.com` (ADMIN) → Settings → Create form role dropdown shows only MODERATOR (no ADMIN option)
+- [ ] Login as `admin@example.com` (SUPERADMIN) → Create form role dropdown shows both ADMIN and MODERATOR
+
+---
+
+### 13. Admin RBAC — Capability Gating
+
+> URL: `/admin/moderation/settings` → Moderator Permissions section
+
+#### 13a. Disable a capability for the moderator
+
+- [ ] Login as `admin@example.com` → Settings → Moderator Permissions → disable "Moderate Messages" → Save
+- [ ] Log out; log in as `moderator@example.com`
+- [ ] **Message Queue card** absent from dashboard (`/admin`)
+- [ ] **Message Queue nav link** absent from sidebar
+- [ ] Navigate directly to `/admin/moderation` → **redirected to `/admin`**
+
+#### 13b. Re-enable the capability
+
+- [ ] Login as admin → Settings → re-enable "Moderate Messages" → Save
+- [ ] Log in as moderator → Message Queue card and nav link visible again
+
+#### 13c. Test other capability gates
+
+- [ ] Disable "Verify Profiles" → moderator loses Profile Queue card, nav link, and `/admin/moderation/profiles` access
+- [ ] Disable "Verify Photos" → moderator loses Photo Queue card, nav link, and `/admin/moderation/photos` access
+- [ ] Disable "Manage Members" → moderator loses Members card, nav link, and `/admin/members` access
+- [ ] Disable "Inspect Subscriptions" → moderator loses Subscriptions nav link and `/admin/subscriptions` access
+- [ ] Disable "Manage Reports" → moderator loses Reports + Flagged Users nav links and those pages
+
+---
+
+### 14. Regression — Member-Facing Features
 
 - [ ] Login as `ahmed@example.com` at `/auth/login` → dashboard loads normally
 - [ ] Navigate to `/search` → only opposite-gender (female) profiles shown
@@ -289,14 +352,14 @@ After seed, expected 3 active reports:
 
 ---
 
-### 13. Automated Quality Gates
+### 15. Automated Quality Gates
 
 Run locally before pushing:
 
 ```bash
 npm run lint        # ESLint — must exit 0
 npx tsc --noEmit    # TypeScript — must exit 0
-npx jest            # Must show: 197 passed, 26 suites
+npx jest            # Must show: 200 passed, 26 suites
 ```
 
 ---

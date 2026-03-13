@@ -1,68 +1,44 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
-export type LoginType = 'admin' | 'user';
-
 interface SignInResult {
   success: boolean;
   error?: string;
 }
 
-/**
- * Sign in a user and validate their role matches the login type
- * @param email - User email
- * @param password - User password
- * @param loginType - 'admin' (requires ADMIN/MODERATOR) or 'user' (requires MEMBER)
- */
-export async function signIn(
-  email: string,
-  password: string,
-  loginType: LoginType
-): Promise<SignInResult> {
+export async function validateUserLogin(email: string, password: string): Promise<SignInResult> {
   try {
-    const user = await prisma.user.findUnique({
+    const memberAccount = await prisma.memberAccount.findUnique({
       where: { email },
-      select: { id: true, passwordHash: true, role: true },
+      include: {
+        user: {
+          select: {
+            id: true,
+            role: true,
+          },
+        },
+      },
     });
 
-    if (!user) {
+    if (!memberAccount) {
       return { success: false, error: 'Invalid email or password' };
     }
 
-    const validPassword = await bcrypt.compare(password, user.passwordHash);
+    const validPassword = await bcrypt.compare(password, memberAccount.passwordHash);
     if (!validPassword) {
       return { success: false, error: 'Invalid email or password' };
     }
 
-    // Validate role based on login type
-    if (loginType === 'admin') {
-      if (user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
-        return {
-          success: false,
-          error: 'This account does not have admin privileges. Please use the regular login.',
-        };
-      }
-    } else if (loginType === 'user') {
-      if (user.role !== 'MEMBER') {
-        return {
-          success: false,
-          error: 'This account is an admin account. Please use the admin login at /admin/login.',
-        };
-      }
+    if (memberAccount.user.role !== 'MEMBER') {
+      return {
+        success: false,
+        error: 'This account is not available in member login.',
+      };
     }
 
-    // Validation passed
     return { success: true };
   } catch (error) {
     console.error('Sign in error:', error);
     return { success: false, error: 'Internal server error' };
   }
-}
-
-// Alias for use in API route
-export async function validateUserLogin(
-  email: string,
-  password: string
-): Promise<SignInResult> {
-  return signIn(email, password, 'user');
 }

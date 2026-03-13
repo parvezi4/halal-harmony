@@ -253,11 +253,13 @@ export default function AuditLogClient() {
                         <div className="text-xs text-slate-200">{entry.actorEmail}</div>
                         <div
                           className={`mt-0.5 text-[10px] uppercase ${
-                            entry.actorRole === 'ADMIN'
-                              ? 'text-red-400'
-                              : entry.actorRole === 'MODERATOR'
-                                ? 'text-purple-400'
-                                : 'text-slate-500'
+                            entry.actorRole === 'SUPERADMIN'
+                              ? 'text-amber-300'
+                              : entry.actorRole === 'ADMIN'
+                                ? 'text-red-400'
+                                : entry.actorRole === 'MODERATOR'
+                                  ? 'text-purple-400'
+                                  : 'text-slate-500'
                           }`}
                         >
                           {entry.actorRole}

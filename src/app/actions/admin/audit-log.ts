@@ -17,7 +17,7 @@ export interface AuditLogEntry {
   id: string;
   actorId: string;
   actorEmail: string;
-  actorRole: 'ADMIN' | 'MODERATOR' | 'MEMBER';
+  actorRole: 'SUPERADMIN' | 'ADMIN' | 'MODERATOR' | 'MEMBER';
   action: string;
   targetType: string;
   targetId: string;
@@ -49,7 +49,7 @@ export async function getAuditLog(
   if (!access.authorized || !access.userId) {
     return { success: false, error: 'Unauthorized' };
   }
-  if (access.role !== 'ADMIN') {
+  if (access.role !== 'SUPERADMIN' && access.role !== 'ADMIN') {
     return { success: false, error: 'Audit log is restricted to administrators' };
   }
 
@@ -112,7 +112,7 @@ export async function getAuditLog(
     id: log.id,
     actorId: log.actorId,
     actorEmail: log.actor.email,
-    actorRole: log.actor.role as 'ADMIN' | 'MODERATOR' | 'MEMBER',
+    actorRole: log.actor.role as 'SUPERADMIN' | 'ADMIN' | 'MODERATOR' | 'MEMBER',
     action: log.action,
     targetType: log.targetType,
     targetId: log.targetId,
@@ -134,7 +134,7 @@ export async function getAuditLogStats(): Promise<
   if (!access.authorized || !access.userId) {
     return { success: false, error: 'Unauthorized' };
   }
-  if (access.role !== 'ADMIN') {
+  if (access.role !== 'SUPERADMIN' && access.role !== 'ADMIN') {
     return { success: false, error: 'Audit log is restricted to administrators' };
   }
 
@@ -172,7 +172,7 @@ export async function getDistinctActors(): Promise<
   if (!access.authorized || !access.userId) {
     return { success: false, error: 'Unauthorized' };
   }
-  if (access.role !== 'ADMIN') {
+  if (access.role !== 'SUPERADMIN' && access.role !== 'ADMIN') {
     return { success: false, error: 'Unauthorized' };
   }
 

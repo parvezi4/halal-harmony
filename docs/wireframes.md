@@ -440,3 +440,84 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 
 - All layouts should be implemented as **mobile-first**, then enhanced for tablet/desktop (e.g. side-by-side columns).
 - Components like nav bar, cards, and buttons should be reused across pages for consistency.
+
+---
+
+### 8. Admin Settings — Moderation & Privileged Users (`/admin/moderation/settings`)
+
+- **Goals**
+  - SUPERADMIN and ADMIN can configure moderator capability toggles.
+  - SUPERADMIN and ADMIN can create/delete privileged accounts (admins and moderators).
+  - Moderators are redirected away from this page entirely.
+
+#### 8a. Moderation Settings
+
+```text
+---------------------------------------------------------
+| Admin Settings                                         |
+---------------------------------------------------------
+| MODERATION                                             |
+|                                                        |
+|  Moderation Type                                       |
+|  ● Pattern Recognition  ○ AI/NLP (Coming Soon)        |
+|                                                        |
+|  Moderation Workflow                                   |
+|  ● Pre-moderation  ○ Post-moderation                  |
+|                                                        |
+|  [ Save Settings ]                                     |
+---------------------------------------------------------
+```
+
+#### 8b. Moderator Permissions (toggle matrix)
+
+```text
+---------------------------------------------------------
+| MODERATOR PERMISSIONS                                  |
+---------------------------------------------------------
+| Capability              | Enabled                      |
+|-------------------------|------------------------------|
+| Moderate Messages       | [✓ toggle]                   |
+| Verify Profiles         | [✓ toggle]                   |
+| Verify Photos           | [✓ toggle]                   |
+| Manage Members          | [✓ toggle]                   |
+| Inspect Subscriptions   | [✓ toggle]                   |
+| Manage Reports          | [✓ toggle]                   |
+| Update Risk Labels      | [✓ toggle]                   |
+---------------------------------------------------------
+| [ Save Permissions ]                                   |
+---------------------------------------------------------
+```
+
+**Visibility behavior**: When a toggle is saved as disabled:
+- The corresponding nav link is hidden in the left sidebar for moderators.
+- The corresponding dashboard card is hidden on `/admin`.
+- Direct URL access to the protected page is blocked (redirect to `/admin`).
+
+#### 8c. Privileged Users (SUPERADMIN / ADMIN view)
+
+```text
+---------------------------------------------------------
+| PRIVILEGED USERS                                       |
+---------------------------------------------------------
+| Email                  | Role       | Created    | Act |
+|------------------------|------------|------------|-----|
+| admin@example.com      | SUPERADMIN | 2026-03-01 | Protected |
+| ops.admin@example.com  | ADMIN      | 2026-03-13 | [Delete] |
+| moderator@example.com  | MODERATOR  | 2026-03-01 | [Delete] |
+---------------------------------------------------------
+| Create Privileged User                                 |
+|  Email:    [____________________________]              |
+|  Password: [____________________________]              |
+|  Role:     [ MODERATOR ▾ ]                             |
+|            (ADMIN option visible to SUPERADMIN only)   |
+|  [ Create User ]                                       |
+---------------------------------------------------------
+```
+
+**Access rules**:
+- SUPERADMIN row shows "Protected" — no delete button.
+- ADMIN rows: deletable by SUPERADMIN only.
+- MODERATOR rows: deletable by SUPERADMIN and ADMIN.
+- Only SUPERADMIN can create new ADMIN accounts.
+- Moderators are redirected to `/admin/moderation` if they navigate to this page.
+

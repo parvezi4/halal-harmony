@@ -4,7 +4,7 @@ import { validateAdminLogin } from '@/app/admin/login/auth-utils';
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    user: {
+    adminAccount: {
       findUnique: jest.fn(),
     },
   },
@@ -19,8 +19,8 @@ describe('validateAdminLogin', () => {
     jest.clearAllMocks();
   });
 
-  it('rejects missing users', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+  it('rejects missing accounts', async () => {
+    (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue(null);
 
     await expect(validateAdminLogin('admin@example.com', 'Password123!')).resolves.toEqual({
       success: false,
@@ -29,10 +29,13 @@ describe('validateAdminLogin', () => {
   });
 
   it('rejects invalid passwords', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      id: 'user-1',
+    (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'admin-account-1',
       passwordHash: 'hashed-password',
-      role: 'ADMIN',
+      user: {
+        id: 'user-1',
+        role: 'ADMIN',
+      },
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
@@ -42,11 +45,14 @@ describe('validateAdminLogin', () => {
     });
   });
 
-  it('rejects member accounts on admin login', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      id: 'user-1',
+  it('rejects non-privileged accounts on admin login', async () => {
+    (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'admin-account-1',
       passwordHash: 'hashed-password',
-      role: 'MEMBER',
+      user: {
+        id: 'user-1',
+        role: 'MEMBER',
+      },
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
@@ -56,11 +62,46 @@ describe('validateAdminLogin', () => {
     });
   });
 
-  it('allows moderator accounts on admin login', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      id: 'user-2',
+  it('allows SUPERADMIN accounts on admin login', async () => {
+    (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'admin-account-2',
       passwordHash: 'hashed-password',
-      role: 'MODERATOR',
+      user: {
+        id: 'user-2',
+        role: 'SUPERADMIN',
+      },
+    });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+    await expect(validateAdminLogin('admin@example.com', 'Password123!')).resolves.toEqual({
+      success: true,
+    });
+  });
+
+  it('allows ADMIN accounts on admin login', async () => {
+    (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'admin-account-3',
+      passwordHash: 'hashed-password',
+      user: {
+        id: 'user-3',
+        role: 'ADMIN',
+      },
+    });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+    await expect(validateAdminLogin('ops.admin@example.com', 'Password123!')).resolves.toEqual({
+      success: true,
+    });
+  });
+
+  it('allows MODERATOR accounts on admin login', async () => {
+    (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'admin-account-4',
+      passwordHash: 'hashed-password',
+      user: {
+        id: 'user-4',
+        role: 'MODERATOR',
+      },
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 

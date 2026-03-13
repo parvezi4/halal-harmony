@@ -1,7 +1,7 @@
 ---
 name: halal-matrimony-mvp
 overview: Design an MVP for a halal, web-based Muslim matrimonial platform with simple, responsive UI, global reach, and basic subscription and messaging features.
-last_updated: '2026-03-11'
+last_updated: '2026-03-13'
 todos:
   - id: clarify-stack
     content: Confirm preferred tech stack (frontend framework, backend style, database) and hosting approach.
@@ -66,6 +66,9 @@ todos:
   - id: messaging-microservice
     content: 'Messaging architecture: Extract messaging into separate microservice for better scalability and real-time performance.'
     status: future
+  - id: admin-rbac-auth-split
+    content: 'Admin RBAC: Add SUPERADMIN role, separate AdminAccount/MemberAccount tables, capability-gated moderator dashboard visibility, and privileged user management UI.'
+    status: completed
   # Admin Panel Improvements (Phase 3)
   - id: admin-panel-improvements
     content: 'Admin: Redesign and improve admin panel UI/UX, including dashboard overview stats, user management table, role/permissions editor, and moderation queue enhancements.'
@@ -98,6 +101,16 @@ isProject: false
 - Admin shell logout action replaces the previous "Back to Site" link — uses same icon/pattern as the member logout.
 - `MODERATOR` enum value synced to live database; moderator credentials and `ModeratorPermissionConfig` seeded.
 - 15 new tests added covering split login route handlers and auth utility functions (4+4+4+3).
+
+**Phase 4 - Admin RBAC & Auth Domain Separation (Complete ✅):**
+- SUPERADMIN role added: protected account that cannot be deleted; all prior ADMIN privileges plus exclusive ability to create/delete ADMIN accounts.
+- Separate `AdminAccount` and `MemberAccount` DB tables: `/admin/login` queries only `AdminAccount`; `/auth/login` queries only `MemberAccount`. Cross-domain login attempts are blocked at the DB query level.
+- Capability-gated moderator dashboard: disabled capabilities hide the corresponding nav link, dashboard card, and block direct URL access (HTTP redirect). Capabilities: moderate messages, verify profiles, verify photos, manage members, inspect subscriptions, manage reports, update risk labels.
+- Privileged user management UI in `/admin/moderation/settings`: SUPERADMIN/ADMIN can create new admins or moderators (email + password), delete admins and moderators, and configure per-moderator capability toggles. SUPERADMIN row shows "Protected" and has no delete button.
+- Audit log access restricted to SUPERADMIN and ADMIN only; moderators redirect to `/admin/moderation`.
+- `canManageMembers` capability added; members page and all member actions require this capability.
+- Migration `20260313102035_add_superadmin_auth_split` applied; seed updated with SUPERADMIN (`admin@example.com`) and new ADMIN example (`ops.admin@example.com`).
+- 200 tests total (26 suites) passing.
 - Docs updated: README portal guidance, `SEED_DATA_REFERENCE.md` credentials, `PLAN.md` snapshot.
 
 **Phase 1 - Core Features:**

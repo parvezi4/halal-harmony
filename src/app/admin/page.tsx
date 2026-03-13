@@ -1,4 +1,4 @@
-import { verifyAdminOrModerator } from '@/lib/admin/access';
+import { getAdminFeatureAccess } from '@/lib/admin/access';
 import { getModerationStats } from '@/app/actions/admin/moderation';
 import { getPendingProfiles } from '@/app/actions/admin/profile-verification';
 import { getPendingPhotos } from '@/app/actions/admin/photo-verification';
@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function AdminDashboardPage() {
-  const access = await verifyAdminOrModerator();
+  const access = await getAdminFeatureAccess();
 
   // Not authenticated → admin login
   if (!access.userId) {
@@ -15,18 +15,23 @@ export default async function AdminDashboardPage() {
   }
 
   // Authenticated but not authorized (MEMBER role) → user dashboard
-  if (!access.authorized) {
+  if (!access.role || access.role === 'MEMBER') {
     redirect('/dashboard');
   }
 
-  const isAdmin = access.role === 'ADMIN';
+  const isElevated = access.role === 'SUPERADMIN' || access.role === 'ADMIN';
+  const features = access.features;
 
   // Fetch dashboard stats in parallel; failures (e.g. capability not granted) return null count
   const [msgStats, profileRes, photoRes, reportStats] = await Promise.all([
-    getModerationStats(),
-    getPendingProfiles({ status: 'PENDING_REVIEW', limit: 1 }),
-    getPendingPhotos({ status: 'PENDING', limit: 1 }),
-    getReportStats(),
+    features.canModerateMessages ? getModerationStats() : Promise.resolve({ success: false } as const),
+    features.canVerifyProfiles
+      ? getPendingProfiles({ status: 'PENDING_REVIEW', limit: 1 })
+      : Promise.resolve({ success: false } as const),
+    features.canVerifyPhotos
+      ? getPendingPhotos({ status: 'PENDING', limit: 1 })
+      : Promise.resolve({ success: false } as const),
+    features.canManageReports ? getReportStats() : Promise.resolve({ success: false } as const),
   ]);
 
   const pendingMessages = msgStats.success ? (msgStats.data?.pending ?? 0) : 0;
@@ -40,10 +45,10 @@ export default async function AdminDashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-50">
-          {isAdmin ? 'Admin Dashboard' : 'Moderator Dashboard'}
+          {isElevated ? 'Admin Dashboard' : 'Moderator Dashboard'}
         </h1>
         <p className="mt-2 text-slate-400">
-          {isAdmin
+          {isElevated
             ? 'Welcome to the Halal Harmony administration panel. Full access to all moderation and management tools.'
             : 'Welcome to the Halal Harmony moderation panel. Manage content and user reports based on your permissions.'}
         </p>
@@ -51,6 +56,7 @@ export default async function AdminDashboardPage() {
 
       {/* Quick Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {features.canModerateMessages && (
         <Link
           href="/admin/moderation"
           className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -68,7 +74,9 @@ export default async function AdminDashboardPage() {
             {pendingMessages > 0 ? `${pendingMessages} pending review` : 'Review flagged messages'}
           </p>
         </Link>
+        )}
 
+        {features.canVerifyProfiles && (
         <Link
           href="/admin/moderation/profiles"
           className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -86,7 +94,9 @@ export default async function AdminDashboardPage() {
             {pendingProfiles > 0 ? `${pendingProfiles} awaiting approval` : 'Approve or suspend profiles'}
           </p>
         </Link>
+        )}
 
+        {features.canVerifyPhotos && (
         <Link
           href="/admin/moderation/photos"
           className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -104,7 +114,9 @@ export default async function AdminDashboardPage() {
             {pendingPhotos > 0 ? `${pendingPhotos} awaiting review` : 'Review and approve photos'}
           </p>
         </Link>
+        )}
 
+        {features.canManageReports && (
         <Link
           href="/admin/reports"
           className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -122,10 +134,12 @@ export default async function AdminDashboardPage() {
             {openReports > 0 ? `${openReports} open / in review` : 'Handle user complaints'}
           </p>
         </Link>
+        )}
       </div>
 
       {/* Additional Cards */}
       <div className="grid gap-4 sm:grid-cols-2">
+        {features.canInspectSubscriptions && (
         <Link
           href="/admin/subscriptions"
           className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -134,7 +148,9 @@ export default async function AdminDashboardPage() {
           <h3 className="mt-2 font-semibold text-slate-50">Subscriptions</h3>
           <p className="mt-1 text-sm text-slate-400">View and manage subscriptions</p>
         </Link>
+        )}
 
+        {features.canManageMembers && (
         <Link
           href="/admin/members"
           className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -143,7 +159,9 @@ export default async function AdminDashboardPage() {
           <h3 className="mt-2 font-semibold text-slate-50">Members</h3>
           <p className="mt-1 text-sm text-slate-400">Manage users and roles</p>
         </Link>
+        )}
 
+        {features.canManageReports && (
         <Link
           href="/admin/flagged"
           className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -152,8 +170,9 @@ export default async function AdminDashboardPage() {
           <h3 className="mt-2 font-semibold text-slate-50">Flagged Users</h3>
           <p className="mt-1 text-sm text-slate-400">High-risk user tracking</p>
         </Link>
+        )}
 
-        {isAdmin && (
+        {features.canViewAuditLog && (
           <Link
             href="/admin/audit-log"
             className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
@@ -164,7 +183,7 @@ export default async function AdminDashboardPage() {
           </Link>
         )}
 
-        {isAdmin && (
+        {features.canManageSettings && (
           <Link
             href="/admin/moderation/settings"
             className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"

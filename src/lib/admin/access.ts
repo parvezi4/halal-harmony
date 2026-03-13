@@ -10,7 +10,19 @@ import {
 interface AccessResult {
   authorized: boolean;
   userId: string | null;
-  role: 'ADMIN' | 'MODERATOR' | 'MEMBER' | null;
+  role: 'SUPERADMIN' | 'ADMIN' | 'MODERATOR' | 'MEMBER' | null;
+}
+
+export interface AdminFeatureAccess {
+  canModerateMessages: boolean;
+  canVerifyProfiles: boolean;
+  canVerifyPhotos: boolean;
+  canManageMembers: boolean;
+  canInspectSubscriptions: boolean;
+  canManageReports: boolean;
+  canUpdateRiskLabels: boolean;
+  canManageSettings: boolean;
+  canViewAuditLog: boolean;
 }
 
 async function getModeratorCapabilityState(): Promise<ModeratorCapabilityState | null> {
@@ -20,6 +32,7 @@ async function getModeratorCapabilityState(): Promise<ModeratorCapabilityState |
       canModerateMessages: true,
       canVerifyProfiles: true,
       canVerifyPhotos: true,
+      canManageMembers: true,
       canInspectSubscriptions: true,
       canManageReports: true,
       canUpdateRiskLabels: true,
@@ -36,6 +49,7 @@ async function getModeratorCapabilityState(): Promise<ModeratorCapabilityState |
       canModerateMessages: true,
       canVerifyProfiles: true,
       canVerifyPhotos: true,
+      canManageMembers: true,
       canInspectSubscriptions: true,
       canManageReports: true,
       canUpdateRiskLabels: true,
@@ -54,10 +68,73 @@ function anyModeratorCapabilityEnabled(config: ModeratorCapabilityState) {
     config.canModerateMessages ||
     config.canVerifyProfiles ||
     config.canVerifyPhotos ||
+    config.canManageMembers ||
     config.canInspectSubscriptions ||
     config.canManageReports ||
     config.canUpdateRiskLabels
   );
+}
+
+export async function getAdminFeatureAccess(): Promise<{
+  userId: string | null;
+  role: AccessResult['role'];
+  features: AdminFeatureAccess;
+}> {
+  const access = await verifyAdminOrModerator();
+  const disabled: AdminFeatureAccess = {
+    canModerateMessages: false,
+    canVerifyProfiles: false,
+    canVerifyPhotos: false,
+    canManageMembers: false,
+    canInspectSubscriptions: false,
+    canManageReports: false,
+    canUpdateRiskLabels: false,
+    canManageSettings: false,
+    canViewAuditLog: false,
+  };
+
+  if (!access.userId || !access.authorized || !access.role) {
+    return { userId: access.userId, role: access.role, features: disabled };
+  }
+
+  if (access.role === 'SUPERADMIN' || access.role === 'ADMIN') {
+    return {
+      userId: access.userId,
+      role: access.role,
+      features: {
+        canModerateMessages: true,
+        canVerifyProfiles: true,
+        canVerifyPhotos: true,
+        canManageMembers: true,
+        canInspectSubscriptions: true,
+        canManageReports: true,
+        canUpdateRiskLabels: true,
+        canManageSettings: true,
+        canViewAuditLog: true,
+      },
+    };
+  }
+
+  const moderatorConfig = await getModeratorCapabilityState();
+  if (!moderatorConfig) {
+    return { userId: access.userId, role: access.role, features: disabled };
+  }
+
+  return {
+    userId: access.userId,
+    role: access.role,
+    features: {
+      canModerateMessages: moderatorConfig.canModerateMessages,
+      canVerifyProfiles: moderatorConfig.canVerifyProfiles,
+      canVerifyPhotos: moderatorConfig.canVerifyPhotos,
+      canManageMembers: moderatorConfig.canManageMembers,
+      canInspectSubscriptions: moderatorConfig.canInspectSubscriptions,
+      canManageReports: moderatorConfig.canManageReports,
+      canUpdateRiskLabels: moderatorConfig.canUpdateRiskLabels,
+      canManageSettings: false,
+      canViewAuditLog: false,
+    },
+  };
 }
 
 export async function verifyAdminOrModerator(
@@ -76,6 +153,10 @@ export async function verifyAdminOrModerator(
 
   if (!user) {
     return { authorized: false, userId: null, role: null };
+  }
+
+  if (user.role === 'SUPERADMIN') {
+    return { authorized: true, userId: session.user.id, role: 'SUPERADMIN' };
   }
 
   if (user.role === 'ADMIN') {

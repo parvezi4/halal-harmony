@@ -2,6 +2,7 @@ export const ADMIN_CAPABILITIES = {
   MODERATE_MESSAGES: 'moderate_messages',
   VERIFY_PROFILES: 'verify_profiles',
   VERIFY_PHOTOS: 'verify_photos',
+  MANAGE_MEMBERS: 'manage_members',
   INSPECT_SUBSCRIPTIONS: 'inspect_subscriptions',
   MANAGE_REPORTS: 'manage_reports',
   UPDATE_RISK_LABELS: 'update_risk_labels',
@@ -15,6 +16,7 @@ export interface ModeratorCapabilityState {
   canModerateMessages: boolean;
   canVerifyProfiles: boolean;
   canVerifyPhotos: boolean;
+  canManageMembers: boolean;
   canInspectSubscriptions: boolean;
   canManageReports: boolean;
   canUpdateRiskLabels: boolean;
@@ -31,6 +33,8 @@ export function capabilityAllowedByConfig(
       return config.canVerifyProfiles;
     case ADMIN_CAPABILITIES.VERIFY_PHOTOS:
       return config.canVerifyPhotos;
+    case ADMIN_CAPABILITIES.MANAGE_MEMBERS:
+      return config.canManageMembers;
     case ADMIN_CAPABILITIES.INSPECT_SUBSCRIPTIONS:
       return config.canInspectSubscriptions;
     case ADMIN_CAPABILITIES.MANAGE_REPORTS:

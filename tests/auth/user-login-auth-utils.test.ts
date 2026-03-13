@@ -4,7 +4,7 @@ import { validateUserLogin } from '@/app/auth/login/auth-utils';
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    user: {
+    memberAccount: {
       findUnique: jest.fn(),
     },
   },
@@ -19,11 +19,23 @@ describe('validateUserLogin', () => {
     jest.clearAllMocks();
   });
 
+  it('rejects missing accounts', async () => {
+    (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await expect(validateUserLogin('member@example.com', 'Password123!')).resolves.toEqual({
+      success: false,
+      error: 'Invalid email or password',
+    });
+  });
+
   it('rejects invalid passwords', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      id: 'user-1',
+    (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'member-account-1',
       passwordHash: 'hashed-password',
-      role: 'MEMBER',
+      user: {
+        id: 'user-1',
+        role: 'MEMBER',
+      },
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
@@ -33,25 +45,31 @@ describe('validateUserLogin', () => {
     });
   });
 
-  it('rejects admin accounts on user login', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      id: 'user-2',
+  it('rejects non-member accounts in member login domain', async () => {
+    (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'member-account-2',
       passwordHash: 'hashed-password',
-      role: 'ADMIN',
+      user: {
+        id: 'user-2',
+        role: 'ADMIN',
+      },
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
     await expect(validateUserLogin('admin@example.com', 'Password123!')).resolves.toEqual({
       success: false,
-      error: 'This account is an admin account. Please use the admin login at /admin/login.',
+      error: 'This account is not available in member login.',
     });
   });
 
   it('allows member accounts on user login', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      id: 'user-3',
+    (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue({
+      id: 'member-account-3',
       passwordHash: 'hashed-password',
-      role: 'MEMBER',
+      user: {
+        id: 'user-3',
+        role: 'MEMBER',
+      },
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 

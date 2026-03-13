@@ -9,6 +9,12 @@ jest.mock('@/lib/prisma', () => ({
       findUnique: jest.fn(),
       create: jest.fn(),
     },
+    memberAccount: {
+      findUnique: jest.fn(),
+    },
+    adminAccount: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 
@@ -33,6 +39,8 @@ describe('POST /api/auth/register', () => {
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
       (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
 
@@ -57,12 +65,20 @@ describe('POST /api/auth/register', () => {
       });
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' },
+        select: { id: true },
       });
       expect(bcrypt.hash).toHaveBeenCalledWith('validpassword123', 10);
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: {
           email: 'test@example.com',
           passwordHash: 'hashed-password',
+          role: 'MEMBER',
+          memberAccount: {
+            create: {
+              email: 'test@example.com',
+              passwordHash: 'hashed-password',
+            },
+          },
         },
       });
     });
@@ -145,6 +161,8 @@ describe('POST /api/auth/register', () => {
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
+      (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue(null);
 
       const request = new Request('http://localhost:3000/api/auth/register', {
         method: 'POST',
@@ -164,6 +182,7 @@ describe('POST /api/auth/register', () => {
       expect(data.error).toBe('An account with this email already exists');
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'existing@example.com' },
+        select: { id: true },
       });
       expect(bcrypt.hash).not.toHaveBeenCalled();
       expect(prisma.user.create).not.toHaveBeenCalled();
@@ -176,6 +195,8 @@ describe('POST /api/auth/register', () => {
       (prisma.user.findUnique as jest.Mock).mockRejectedValue(
         new Error('Database connection failed')
       );
+      (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue(null);
 
       const request = new Request('http://localhost:3000/api/auth/register', {
         method: 'POST',
@@ -199,6 +220,8 @@ describe('POST /api/auth/register', () => {
     it('should return 500 when user creation fails', async () => {
       // Arrange
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.memberAccount.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.adminAccount.findUnique as jest.Mock).mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
       (prisma.user.create as jest.Mock).mockRejectedValue(new Error('Failed to create user'));
 

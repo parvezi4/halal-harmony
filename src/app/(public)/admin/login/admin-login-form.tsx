@@ -38,6 +38,7 @@ export function AdminLoginForm() {
       const authRes = await signIn('credentials', {
         email: form.email,
         password: form.password,
+        portal: 'admin',
         redirect: false,
       });
 

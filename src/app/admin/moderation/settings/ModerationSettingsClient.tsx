@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ModeratorCapabilityState } from '@/lib/admin/capabilities';
 import { updateModeratorPermissionConfig } from '@/app/actions/admin/permissions';
+import {
+  createPrivilegedUser,
+  deletePrivilegedUser,
+  getPrivilegedUsers,
+  type PrivilegedUserRow,
+} from '@/app/actions/admin/privileged-users';
 
 interface ModerationSettingsClientProps {
   initialPermissions: ModeratorCapabilityState & { updatedAt: string };
@@ -18,12 +24,31 @@ export default function ModerationSettingsClient({
     canModerateMessages: initialPermissions.canModerateMessages,
     canVerifyProfiles: initialPermissions.canVerifyProfiles,
     canVerifyPhotos: initialPermissions.canVerifyPhotos,
+    canManageMembers: initialPermissions.canManageMembers,
     canInspectSubscriptions: initialPermissions.canInspectSubscriptions,
     canManageReports: initialPermissions.canManageReports,
     canUpdateRiskLabels: initialPermissions.canUpdateRiskLabels,
   });
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string>(initialPermissions.updatedAt);
   const [isSaving, setIsSaving] = useState(false);
+  const [privilegedUsers, setPrivilegedUsers] = useState<PrivilegedUserRow[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'ADMIN' | 'MODERATOR'>('MODERATOR');
+
+  const loadPrivilegedUsers = async () => {
+    setLoadingUsers(true);
+    const result = await getPrivilegedUsers();
+    if (result.success && result.data) {
+      setPrivilegedUsers(result.data);
+    }
+    setLoadingUsers(false);
+  };
+
+  useEffect(() => {
+    void loadPrivilegedUsers();
+  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -39,6 +64,7 @@ export default function ModerationSettingsClient({
       canModerateMessages: result.data.canModerateMessages,
       canVerifyProfiles: result.data.canVerifyProfiles,
       canVerifyPhotos: result.data.canVerifyPhotos,
+      canManageMembers: result.data.canManageMembers,
       canInspectSubscriptions: result.data.canInspectSubscriptions,
       canManageReports: result.data.canManageReports,
       canUpdateRiskLabels: result.data.canUpdateRiskLabels,
@@ -66,6 +92,36 @@ export default function ModerationSettingsClient({
           minute: '2-digit',
         });
 
+  const handleCreatePrivilegedUser = async () => {
+    const result = await createPrivilegedUser(newUserEmail.trim(), newUserPassword, newUserRole);
+
+    if (!result.success) {
+      window.alert(result.errors?.general || 'Failed to create account');
+      return;
+    }
+
+    setNewUserEmail('');
+    setNewUserPassword('');
+    setNewUserRole('MODERATOR');
+    window.alert(result.message || 'Account created');
+    await loadPrivilegedUsers();
+  };
+
+  const handleDeletePrivilegedUser = async (userId: string, email: string) => {
+    if (!window.confirm(`Delete privileged user ${email}?`)) {
+      return;
+    }
+
+    const result = await deletePrivilegedUser(userId);
+    if (!result.success) {
+      window.alert(result.errors?.general || 'Failed to delete account');
+      return;
+    }
+
+    window.alert(result.message || 'Account deleted');
+    await loadPrivilegedUsers();
+  };
+
   return (
     <div className="space-y-6">
       <header className="border-b border-slate-800 pb-4">
@@ -84,6 +140,102 @@ export default function ModerationSettingsClient({
           <code className="rounded bg-slate-950 px-1">src/lib/moderation/contentFilter.ts</code>.
         </p>
       </div>
+
+      <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-50">Privileged Users</h2>
+            <p className="mt-1 text-xs text-slate-400">
+              Superadmin/admin can create moderators. Only superadmin can create additional admins.
+              Superadmin account is protected and cannot be deleted.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 rounded-lg border border-slate-700 bg-slate-950/60 p-4 sm:grid-cols-4">
+          <input
+            type="email"
+            value={newUserEmail}
+            onChange={(e) => setNewUserEmail(e.target.value)}
+            placeholder="new-user@example.com"
+            className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 sm:col-span-2"
+          />
+          <input
+            type="password"
+            value={newUserPassword}
+            onChange={(e) => setNewUserPassword(e.target.value)}
+            placeholder="Temporary password"
+            className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          />
+          <select
+            value={newUserRole}
+            onChange={(e) => setNewUserRole(e.target.value as 'ADMIN' | 'MODERATOR')}
+            className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          >
+            <option value="MODERATOR">MODERATOR</option>
+            <option value="ADMIN">ADMIN (superadmin only)</option>
+          </select>
+        </div>
+
+        <div className="mt-3 flex justify-end">
+          <button
+            onClick={handleCreatePrivilegedUser}
+            className="rounded-full bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-white"
+          >
+            Create Privileged User
+          </button>
+        </div>
+
+        <div className="mt-4 overflow-x-auto rounded-lg border border-slate-800">
+          <table className="w-full text-sm">
+            <thead className="border-b border-slate-800 bg-slate-900/70">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Email</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Role</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Created</th>
+                <th className="px-3 py-2 text-right text-xs font-semibold text-slate-300">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingUsers ? (
+                <tr>
+                  <td className="px-3 py-3 text-slate-400" colSpan={4}>
+                    Loading users...
+                  </td>
+                </tr>
+              ) : privilegedUsers.length === 0 ? (
+                <tr>
+                  <td className="px-3 py-3 text-slate-400" colSpan={4}>
+                    No privileged users found.
+                  </td>
+                </tr>
+              ) : (
+                privilegedUsers.map((user) => (
+                  <tr key={user.id} className="border-b border-slate-800/70">
+                    <td className="px-3 py-2 text-slate-200">{user.email}</td>
+                    <td className="px-3 py-2 text-slate-300">{user.role}</td>
+                    <td className="px-3 py-2 text-slate-400">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {user.role === 'SUPERADMIN' ? (
+                        <span className="text-xs text-amber-300">Protected</span>
+                      ) : (
+                        <button
+                          onClick={() => handleDeletePrivilegedUser(user.id, user.email)}
+                          className="rounded border border-red-600 px-2 py-1 text-xs text-red-300 hover:bg-red-950/40"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-start justify-between gap-4">
@@ -119,6 +271,14 @@ export default function ModerationSettingsClient({
               type="checkbox"
               checked={permissions.canVerifyPhotos}
               onChange={() => togglePermission('canVerifyPhotos')}
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
+            <span>Members management</span>
+            <input
+              type="checkbox"
+              checked={permissions.canManageMembers}
+              onChange={() => togglePermission('canManageMembers')}
             />
           </label>
           <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">

@@ -1,0 +1,143 @@
+---
+feature: admin-rbac-and-auth-domain-separation
+version: '1.0'
+implemented: '2026-03-13'
+status: complete
+
+overview: |
+  Introduces a three-tier privileged user hierarchy (SUPERADMIN → ADMIN → MODERATOR),
+  separates admin and member auth into independent DB tables, and gates moderator
+  dashboard access by per-capability toggles configured by SUPERADMIN/ADMIN.
+
+roles:
+  SUPERADMIN:
+    description: The single protected account. Cannot be deleted by anyone.
+    capabilities: all
+    can_create: [ADMIN, MODERATOR]
+    can_delete: [ADMIN, MODERATOR]
+    count_constraint: exactly 1 (enforced in DB and server actions)
+
+  ADMIN:
+    description: Full privileges; deletable by SUPERADMIN only.
+    capabilities: all
+    can_create: [MODERATOR]
+    can_delete: [MODERATOR]
+    count_constraint: unlimited
+
+  MODERATOR:
+    description: Subset of privileges; deletable by SUPERADMIN and ADMIN.
+    capabilities: configured per ModeratorPermissionConfig (global)
+    can_create: []
+    can_delete: []
+
+capabilities:
+  canModerateMessages:
+    dashboard_card: Message Queue
+    nav_link: Message Queue
+    protected_routes: [/admin/moderation]
+  canVerifyProfiles:
+    dashboard_card: Profile Queue
+    nav_link: Profile Queue
+    protected_routes: [/admin/moderation/profiles]
+  canVerifyPhotos:
+    dashboard_card: Photo Queue
+    nav_link: Photo Queue
+    protected_routes: [/admin/moderation/photos]
+  canManageMembers:
+    dashboard_card: Members
+    nav_link: Members
+    protected_routes: [/admin/members]
+  canInspectSubscriptions:
+    nav_link: Subscriptions
+    protected_routes: [/admin/subscriptions]
+  canManageReports:
+    nav_link: Reports
+    nav_link_2: Flagged Users
+    protected_routes: [/admin/reports, /admin/flagged]
+  canUpdateRiskLabels:
+    description: Allows moderator to update user risk labels (GREEN/AMBER/RED)
+
+restricted_to_superadmin_admin:
+  - /admin/audit-log
+  - /admin/moderation/settings (read + write)
+
+auth_domain_separation:
+  admin_portal:
+    url: /admin/login
+    table: AdminAccount
+    accepted_roles: [SUPERADMIN, ADMIN, MODERATOR]
+    rejects: all MEMBER accounts
+  member_portal:
+    url: /auth/login
+    table: MemberAccount
+    accepted_roles: [MEMBER]
+    rejects: all admin-domain accounts
+
+user_stories:
+  - id: rbac-1
+    as: SUPERADMIN
+    i_want: to create new ADMIN and MODERATOR accounts from Settings
+    so_that: I can delegate moderation duties without giving anyone my login
+    acceptance_criteria:
+      - Settings page shows Privileged Users section
+      - Create form accepts email, password, and role (ADMIN or MODERATOR)
+      - On success, new row appears in the table
+      - Created account can log in at /admin/login immediately
+
+  - id: rbac-2
+    as: SUPERADMIN
+    i_want: to delete ADMIN and MODERATOR accounts
+    acceptance_criteria:
+      - Delete button present for ADMIN and MODERATOR rows
+      - SUPERADMIN row shows "Protected" and has no delete button
+      - Deletion creates an audit log entry
+
+  - id: rbac-3
+    as: ADMIN
+    i_want: to create and delete MODERATOR accounts only
+    acceptance_criteria:
+      - Create form shows only MODERATOR in role dropdown
+      - Admin can delete moderator rows
+      - Admin cannot delete other admin rows
+      - Admin cannot delete the superadmin row
+
+  - id: rbac-4
+    as: SUPERADMIN or ADMIN
+    i_want: to configure moderator capability toggles
+    so_that: I can limit what sections each moderator can see and access
+    acceptance_criteria:
+      - Moderator Permissions section in Settings shows 7 toggles
+      - Saved config persists to ModeratorPermissionConfig table
+      - Re-logging in as moderator reflects the latest config immediately
+      - Disabled capability removes corresponding nav link and dashboard card
+      - Navigating directly to protected URL redirects to /admin
+
+  - id: rbac-5
+    as: a MODERATOR with restricted access
+    i_want: the UI to hide sections I cannot use
+    acceptance_criteria:
+      - Only nav links for enabled capabilities are shown
+      - Only dashboard cards for enabled capabilities are shown
+      - Direct URL navigation to a disabled section redirects to /admin
+      - Settings and Audit Log are always hidden from moderators
+
+  - id: rbac-6
+    as: a member user
+    i_want: the admin portal to be completely separate from my account
+    acceptance_criteria:
+      - /auth/login only queries MemberAccount table
+      - Member credentials entered at /admin/login are rejected
+      - Admin/moderator credentials entered at /auth/login are rejected
+      - No information about the admin portal is visible on member-facing pages
+
+db_tables:
+  AdminAccount:
+    fields: [id, userId (FK unique), email (unique), passwordHash, createdAt, updatedAt]
+    note: One row per admin-domain user (SUPERADMIN, ADMIN, MODERATOR)
+  MemberAccount:
+    fields: [id, userId (FK unique), email (unique), passwordHash, createdAt, updatedAt]
+    note: One row per member user; created atomically with User on registration
+
+migrations:
+  - name: 20260313102035_add_superadmin_auth_split
+    adds: [AdminAccount table, MemberAccount table, SUPERADMIN enum value, canManageMembers column]
