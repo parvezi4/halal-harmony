@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   getMembers,
   getMemberStats,
@@ -31,17 +31,19 @@ const RISK_STYLES: Record<string, string> = {
 
 type ModalAction = 'suspend' | 'reactivate';
 
+const INITIAL_FILTERS: MemberFilters = {
+  search: '',
+  role: '',
+  profileStatus: '',
+  subscriptionStatus: '',
+  page: 1,
+  pageSize: 10,
+  sortBy: 'createdAt',
+  sortDir: 'desc',
+};
+
 export default function MembersClient() {
-  const [filters, setFilters] = useState<MemberFilters>({
-    search: '',
-    role: '',
-    profileStatus: '',
-    subscriptionStatus: '',
-    page: 1,
-    pageSize: 20,
-    sortBy: 'createdAt',
-    sortDir: 'desc',
-  });
+  const [filters, setFilters] = useState<MemberFilters>(INITIAL_FILTERS);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -58,46 +60,46 @@ export default function MembersClient() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const fetchData = useCallback(
-    async (overrideFilters?: Partial<MemberFilters>) => {
-      setLoading(true);
-      setError(null);
-      const active = { ...filters, ...overrideFilters };
-      const [membersRes, statsRes] = await Promise.all([
-        getMembers(active),
-        getMemberStats(),
-      ]);
-      setLoading(false);
+  const fetchData = useCallback(async (active: MemberFilters) => {
+    setLoading(true);
+    setError(null);
+    const [membersRes, statsRes] = await Promise.all([
+      getMembers(active),
+      getMemberStats(),
+    ]);
+    setLoading(false);
 
-      if (!membersRes.success) {
-        setError(membersRes.error);
-        return;
-      }
-      if (!statsRes.success) {
-        setError(statsRes.error);
-        return;
-      }
+    if (!membersRes.success) {
+      setError(membersRes.error);
+      return;
+    }
+    if (!statsRes.success) {
+      setError(statsRes.error);
+      return;
+    }
 
-      setMembers(membersRes.data.members);
-      setTotal(membersRes.data.total);
-      setTotalPages(membersRes.data.totalPages);
-      setStats(statsRes.data);
-      setHasLoaded(true);
-    },
-    [filters]
-  );
+    setMembers(membersRes.data.members);
+    setTotal(membersRes.data.total);
+    setTotalPages(membersRes.data.totalPages);
+    setStats(statsRes.data);
+    setHasLoaded(true);
+  }, []);
 
   const handleApplyFilters = () => {
     const updated = { ...filters, page: 1 };
     setFilters(updated);
-    fetchData(updated);
+    void fetchData(updated);
   };
 
   const handlePageChange = (newPage: number) => {
     const updated = { ...filters, page: newPage };
     setFilters(updated);
-    fetchData(updated);
+    void fetchData(updated);
   };
+
+  useEffect(() => {
+    void fetchData(INITIAL_FILTERS);
+  }, [fetchData]);
 
   const openModal = (member: MemberRow, action: ModalAction) => {
     setSelectedMember(member);
@@ -136,7 +138,7 @@ export default function MembersClient() {
     }
 
     closeModal();
-    fetchData();
+    void fetchData(filters);
   };
 
   const formatDate = (date: Date | string) =>
@@ -263,9 +265,7 @@ export default function MembersClient() {
 
       {/* Table */}
       {!hasLoaded ? (
-        <div className="py-12 text-center text-slate-500">
-          Apply filters to load member data.
-        </div>
+        <div className="py-12 text-center text-slate-500">Loading members...</div>
       ) : members.length === 0 ? (
         <div className="py-12 text-center text-slate-500">No members match the current filters.</div>
       ) : (

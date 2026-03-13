@@ -85,7 +85,7 @@ todos:
 isProject: false
 ---
 
-### Implementation snapshot (as of 2026-03-11)
+### Implementation snapshot (as of 2026-03-13)
 
 **Admin Panel Improvements Series (Complete ✅):**
 - Live stats badges on admin dashboard: Message Queue, Profile Queue, Photo Queue, Reports — all with real-time counts from DB, each card links to the corresponding queue page.
@@ -112,6 +112,16 @@ isProject: false
 - Migration `20260313102035_add_superadmin_auth_split` applied; seed updated with SUPERADMIN (`admin@example.com`) and new ADMIN example (`ops.admin@example.com`).
 - 200 tests total (26 suites) passing.
 - Docs updated: README portal guidance, `SEED_DATA_REFERENCE.md` credentials, `PLAN.md` snapshot.
+
+**Admin UX Polish (Complete ✅):**
+- Moderator capability toggles in `/admin/moderation/settings` now auto-save per checkbox with inline save status; removed dependency on a bottom-page Save button.
+- Audit Log now auto-loads latest 10 entries on first render (no blank initial state).
+- Admin list pages now auto-load on first render and keep working Prev/Next pagination with sensible defaults:
+  - Members: 10 per page
+  - Reports: 10 per page
+  - Subscriptions: 10 per page
+  - Photo Queue: 8 per page
+- Photo Queue moderation now always shows the actual image preview (unblurred in moderation UI) and uses Approve/Reject actions without blur/unblur controls.
 
 **Phase 1 - Core Features:**
 - Favorites flow is implemented end-to-end:

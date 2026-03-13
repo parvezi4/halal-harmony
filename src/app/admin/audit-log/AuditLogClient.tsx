@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   getAuditLog,
   getAuditLogStats,
@@ -30,6 +30,15 @@ const TARGET_TYPE_LABELS: Record<string, string> = {
   message: 'Message',
 };
 
+const INITIAL_FILTERS: AuditLogFilters = {
+  search: '',
+  actorId: '',
+  targetType: '',
+  action: '',
+  page: 1,
+  pageSize: 10,
+};
+
 function actionBadge(action: string) {
   const style = ACTION_STYLES[action] ?? 'bg-slate-800 text-slate-300';
   return (
@@ -40,14 +49,7 @@ function actionBadge(action: string) {
 }
 
 export default function AuditLogClient() {
-  const [filters, setFilters] = useState<AuditLogFilters>({
-    search: '',
-    actorId: '',
-    targetType: '',
-    action: '',
-    page: 1,
-    pageSize: 25,
-  });
+  const [filters, setFilters] = useState<AuditLogFilters>(INITIAL_FILTERS);
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -58,48 +60,48 @@ export default function AuditLogClient() {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const fetchData = useCallback(
-    async (overrideFilters?: Partial<AuditLogFilters>) => {
-      setLoading(true);
-      setError(null);
-      const active = { ...filters, ...overrideFilters };
-      const [logsRes, statsRes, actorsRes] = await Promise.all([
-        getAuditLog(active),
-        getAuditLogStats(),
-        getDistinctActors(),
-      ]);
-      setLoading(false);
+  const fetchData = useCallback(async (active: AuditLogFilters) => {
+    setLoading(true);
+    setError(null);
+    const [logsRes, statsRes, actorsRes] = await Promise.all([
+      getAuditLog(active),
+      getAuditLogStats(),
+      getDistinctActors(),
+    ]);
+    setLoading(false);
 
-      if (!logsRes.success) {
-        setError(logsRes.error);
-        return;
-      }
-      if (!statsRes.success) {
-        setError(statsRes.error);
-        return;
-      }
+    if (!logsRes.success) {
+      setError(logsRes.error);
+      return;
+    }
+    if (!statsRes.success) {
+      setError(statsRes.error);
+      return;
+    }
 
-      setEntries(logsRes.data.entries);
-      setTotal(logsRes.data.total);
-      setTotalPages(logsRes.data.totalPages);
-      setStats(statsRes.data);
-      if (actorsRes.success) setActors(actorsRes.data);
-      setHasLoaded(true);
-    },
-    [filters]
-  );
+    setEntries(logsRes.data.entries);
+    setTotal(logsRes.data.total);
+    setTotalPages(logsRes.data.totalPages);
+    setStats(statsRes.data);
+    if (actorsRes.success) setActors(actorsRes.data);
+    setHasLoaded(true);
+  }, []);
 
   const handleApplyFilters = () => {
     const updated = { ...filters, page: 1 };
     setFilters(updated);
-    fetchData(updated);
+    void fetchData(updated);
   };
 
   const handlePageChange = (newPage: number) => {
     const updated = { ...filters, page: newPage };
     setFilters(updated);
-    fetchData(updated);
+    void fetchData(updated);
   };
+
+  useEffect(() => {
+    void fetchData(INITIAL_FILTERS);
+  }, [fetchData]);
 
   const formatDateTime = (date: Date | string) => {
     const d = new Date(date);
@@ -217,9 +219,7 @@ export default function AuditLogClient() {
 
       {/* Table */}
       {!hasLoaded ? (
-        <div className="py-12 text-center text-slate-500">
-          Apply filters to load the audit log.
-        </div>
+        <div className="py-12 text-center text-slate-500">Loading audit log...</div>
       ) : entries.length === 0 ? (
         <div className="py-12 text-center text-slate-500">No audit log entries match the current filters.</div>
       ) : (
@@ -240,9 +240,8 @@ export default function AuditLogClient() {
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-950">
                 {entries.map((entry) => (
-                  <>
+                  <React.Fragment key={entry.id}>
                     <tr
-                      key={entry.id}
                       className="cursor-pointer hover:bg-slate-900/50"
                       onClick={() => toggleExpand(entry.id)}
                     >
@@ -307,7 +306,7 @@ export default function AuditLogClient() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

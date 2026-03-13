@@ -85,6 +85,8 @@ export async function createPrivilegedUser(
     };
   }
 
+  const actorId = access.userId;
+
   try {
     const [existingUser, existingAdminAccount, existingMemberAccount] = await Promise.all([
       prisma.user.findUnique({ where: { email }, select: { id: true } }),
@@ -116,7 +118,7 @@ export async function createPrivilegedUser(
 
       await tx.moderationAuditLog.create({
         data: {
-          actorId: access.userId,
+          actorId,
           action: 'PRIVILEGED_USER_CREATED',
           targetType: 'User',
           targetId: user.id,
@@ -176,12 +178,14 @@ export async function deletePrivilegedUser(targetUserId: string): Promise<Action
       };
     }
 
+    const actorId = access.userId;
+
     await prisma.$transaction(async (tx) => {
       await tx.user.delete({ where: { id: targetUserId } });
 
       await tx.moderationAuditLog.create({
         data: {
-          actorId: access.userId,
+          actorId,
           action: 'PRIVILEGED_USER_DELETED',
           targetType: 'User',
           targetId: targetUserId,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { getSubscriptions, getSubscriptionStats } from '@/app/actions/admin/subscriptions';
 
 interface SubscriptionData {
@@ -20,6 +20,7 @@ interface SubscriptionData {
 }
 
 export function SubscriptionsClient() {
+  const DEFAULT_LIMIT = 10;
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
   const [stats, setStats] = useState({
     totalActive: 0,
@@ -34,18 +35,26 @@ export function SubscriptionsClient() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'startDate' | 'endDate' | 'createdAt'>('startDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(
+    async (active: {
+      page: number;
+      status: typeof status;
+      search: string;
+      sortBy: typeof sortBy;
+      sortOrder: typeof sortOrder;
+    }) => {
     setLoading(true);
     try {
       const [subResult, statsResult] = await Promise.all([
         getSubscriptions({
-          status: status === 'ALL' ? undefined : status,
-          search: search || undefined,
-          sortBy,
-          sortOrder,
-          page,
-          limit: 20,
+          status: active.status === 'ALL' ? undefined : active.status,
+          search: active.search || undefined,
+          sortBy: active.sortBy,
+          sortOrder: active.sortOrder,
+          page: active.page,
+          limit: DEFAULT_LIMIT,
         }),
         getSubscriptionStats(),
       ]);
@@ -61,18 +70,49 @@ export function SubscriptionsClient() {
     } catch (error) {
       console.error('Failed to load subscriptions:', error);
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
-  }, [page, status, search, sortBy, sortOrder]);
+    },
+    []
+  );
+
+  const handleApplyFilters = () => {
+    const nextPage = 1;
+    setPage(nextPage);
+    void loadData({ page: nextPage, status, search, sortBy, sortOrder });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const safeMax = Math.max(1, totalPages);
+    const nextPage = Math.min(Math.max(1, newPage), safeMax);
+    setPage(nextPage);
+    void loadData({ page: nextPage, status, search, sortBy, sortOrder });
+  };
+
+  useEffect(() => {
+    void loadData({
+      page: 1,
+      status: 'ALL',
+      search: '',
+      sortBy: 'startDate',
+      sortOrder: 'desc',
+    });
+  }, [loadData]);
 
   const handleSort = (newSortBy: 'startDate' | 'endDate' | 'createdAt') => {
+    const nextSortBy = sortBy === newSortBy ? sortBy : newSortBy;
+    const nextSortOrder = sortBy === newSortBy ? (sortOrder === 'asc' ? 'desc' : 'asc') : 'desc';
+
     if (sortBy === newSortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(nextSortOrder);
     } else {
-      setSortBy(newSortBy);
-      setSortOrder('desc');
+      setSortBy(nextSortBy);
+      setSortOrder(nextSortOrder);
     }
-    setPage(1);
+    const nextPage = 1;
+    setPage(nextPage);
+    void loadData({ page: nextPage, status, search, sortBy: nextSortBy, sortOrder: nextSortOrder });
   };
 
   return (
@@ -138,7 +178,7 @@ export function SubscriptionsClient() {
           </select>
 
           <button
-            onClick={loadData}
+            onClick={handleApplyFilters}
             disabled={loading}
             className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
           >
@@ -171,7 +211,13 @@ export function SubscriptionsClient() {
             </tr>
           </thead>
           <tbody>
-            {subscriptions.length === 0 ? (
+            {!hasLoaded ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                  Loading subscriptions...
+                </td>
+              </tr>
+            ) : subscriptions.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                   No subscriptions found
@@ -243,15 +289,15 @@ export function SubscriptionsClient() {
         </p>
         <div className="flex gap-2">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => handlePageChange(page - 1)}
             disabled={page === 1 || loading}
             className="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50"
           >
             ← Prev
           </button>
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages || loading}
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages || loading || totalPages === 0}
             className="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50"
           >
             Next →

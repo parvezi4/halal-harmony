@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { verifyAdminOrModerator } from '@/lib/admin/access';
@@ -125,6 +126,8 @@ export async function updateModeratorPermissionConfig(
         metadata: payload as unknown as Prisma.InputJsonValue,
       },
     });
+
+    revalidatePath('/admin', 'layout');
 
     return {
       success: true,

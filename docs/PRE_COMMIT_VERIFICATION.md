@@ -196,13 +196,14 @@ Expected counts after a clean seed:
 
 > URL: `/admin/moderation/photos`
 
-- [ ] Page loads; badge count matches dashboard (**5** after seed)
+- [ ] Page loads immediately with first batch (**8 photos per page**) and badge count matches dashboard (**5** after seed)
 - [ ] Photos show user alias, risk level, MIME type, file size
+- [ ] Photos render unblurred in moderation view so admins can review actual content
 - [ ] Search by user name works
 - [ ] Filter by risk level (GREEN / AMBER / RED / ALL) works
 - [ ] Click **Approve** → photo leaves PENDING view
 - [ ] Click **Reject** → photo removed from queue
-- [ ] Click **Blur** → photo flagged (modesty preservation — stays visible but blurred)
+- [ ] Prev / Next pagination works when enough photos exist
 - [ ] Each action creates an entry in the Audit Log
 
 ---
@@ -220,6 +221,8 @@ After seed, expected 3 active reports:
 | 3 | Ahmed | Sumayyah | OPEN | Suspicious opening messages |
 
 - [ ] All 3 reports visible in OPEN / REVIEWING filter
+- [ ] Initial page auto-loads without pressing Apply Filters
+- [ ] Prev / Next pagination works when enough rows exist
 - [ ] Status filter (All / Open / Reviewing / Resolved / Dismissed) works
 - [ ] Changing a report status updates the badge inline
 - [ ] A 4th resolved report (Fatima → Ibrahim) visible under RESOLVED filter
@@ -230,7 +233,8 @@ After seed, expected 3 active reports:
 
 > URL: `/admin/subscriptions`
 
-- [ ] Page loads with Ahmed and Fatima's active Premium subscriptions
+- [ ] Initial page auto-loads with Ahmed and Fatima's active Premium subscriptions
+- [ ] Prev / Next pagination works when enough rows exist
 - [ ] Status filter (ACTIVE / EXPIRED / CANCELLED / ALL) works
 - [ ] Search by name or email works
 - [ ] Sort by start date / end date / created date works
@@ -242,7 +246,8 @@ After seed, expected 3 active reports:
 
 > URL: `/admin/members`
 
-- [ ] Paginated list loads (13 users total after seed)
+- [ ] Paginated list auto-loads (13 users total after seed)
+- [ ] Prev / Next pagination works (default page size 10)
 - [ ] Filter by role (ADMIN / MODERATOR / MEMBER) works
 - [ ] Filter by profile status (PENDING_REVIEW / APPROVED / SUSPENDED) works
 - [ ] Search by name or email works
@@ -257,8 +262,9 @@ After seed, expected 3 active reports:
 > URL: `/admin/audit-log`
 
 - [ ] Loads for `admin@example.com`; redirected to `/admin/moderation` for moderator
+- [ ] Initial page auto-loads latest 10 entries without pressing Apply Filters
 - [ ] After running actions in tests 4–9 above, corresponding entries appear:
-  - PHOTO_APPROVED, PHOTO_REJECTED, PHOTO_BLURRED
+  - PHOTO_APPROVED, PHOTO_REJECTED
   - PROFILE_APPROVED, PROFILE_SUSPENDED
   - MEMBER_SUSPENDED, MEMBER_REACTIVATED
   - REPORT_STATUS_UPDATED
@@ -318,7 +324,7 @@ After seed, expected 3 active reports:
 
 #### 13a. Disable a capability for the moderator
 
-- [ ] Login as `admin@example.com` → Settings → Moderator Permissions → disable "Moderate Messages" → Save
+- [ ] Login as `admin@example.com` → Settings → Moderator Permissions → disable "Moderate Messages" (auto-saves)
 - [ ] Log out; log in as `moderator@example.com`
 - [ ] **Message Queue card** absent from dashboard (`/admin`)
 - [ ] **Message Queue nav link** absent from sidebar
@@ -326,7 +332,7 @@ After seed, expected 3 active reports:
 
 #### 13b. Re-enable the capability
 
-- [ ] Login as admin → Settings → re-enable "Moderate Messages" → Save
+- [ ] Login as admin → Settings → re-enable "Moderate Messages" (auto-saves)
 - [ ] Log in as moderator → Message Queue card and nav link visible again
 
 #### 13c. Test other capability gates

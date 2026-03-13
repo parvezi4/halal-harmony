@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   getReports,
   getReportStats,
@@ -22,6 +22,7 @@ const RISK_STYLES: Record<string, string> = {
 };
 
 export function ReportsClient() {
+  const DEFAULT_LIMIT = 10;
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [stats, setStats] = useState({
     open: 0,
@@ -44,16 +45,17 @@ export function ReportsClient() {
   const [modalNote, setModalNote] = useState('');
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (active: { page: number; statusFilter: typeof statusFilter; search: string }) => {
     setLoading(true);
     try {
       const [reportsResult, statsResult] = await Promise.all([
         getReports({
-          status: statusFilter === 'ALL' ? undefined : statusFilter,
-          search: search || undefined,
-          page,
-          limit: 20,
+          status: active.statusFilter === 'ALL' ? undefined : active.statusFilter,
+          search: active.search || undefined,
+          page: active.page,
+          limit: DEFAULT_LIMIT,
         }),
         getReportStats(),
       ]);
@@ -69,9 +71,27 @@ export function ReportsClient() {
     } catch (err) {
       console.error('Failed to load reports:', err);
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
-  }, [page, statusFilter, search]);
+  }, []);
+
+  const handleApplyFilters = () => {
+    const nextPage = 1;
+    setPage(nextPage);
+    void loadData({ page: nextPage, statusFilter, search });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const safeMax = Math.max(1, totalPages);
+    const nextPage = Math.min(Math.max(1, newPage), safeMax);
+    setPage(nextPage);
+    void loadData({ page: nextPage, statusFilter, search });
+  };
+
+  useEffect(() => {
+    void loadData({ page: 1, statusFilter: 'OPEN', search: '' });
+  }, [loadData]);
 
   const handleOpenModal = (
     report: ReportSummary,
@@ -95,7 +115,7 @@ export function ReportsClient() {
       if (result.success) {
         setSelectedReport(null);
         setError(null);
-        await loadData();
+        await loadData({ page, statusFilter, search });
       } else {
         setError(result.errors?.general || 'Unknown error');
       }
@@ -173,7 +193,7 @@ export function ReportsClient() {
             <option value="DISMISSED">Dismissed</option>
           </select>
           <button
-            onClick={loadData}
+            onClick={handleApplyFilters}
             disabled={loading}
             className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
           >
@@ -206,7 +226,13 @@ export function ReportsClient() {
             </tr>
           </thead>
           <tbody>
-            {reports.length === 0 ? (
+            {!hasLoaded ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                  Loading reports...
+                </td>
+              </tr>
+            ) : reports.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                   No reports found
@@ -294,15 +320,15 @@ export function ReportsClient() {
         <p className="text-sm text-slate-400">Page {page} of {totalPages}</p>
         <div className="flex gap-2">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => handlePageChange(page - 1)}
             disabled={page === 1 || loading}
             className="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50"
           >
             ← Prev
           </button>
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages || loading}
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages || loading || totalPages === 0}
             className="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50"
           >
             Next →

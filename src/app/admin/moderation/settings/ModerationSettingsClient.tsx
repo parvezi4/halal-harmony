@@ -30,7 +30,7 @@ export default function ModerationSettingsClient({
     canUpdateRiskLabels: initialPermissions.canUpdateRiskLabels,
   });
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string>(initialPermissions.updatedAt);
-  const [isSaving, setIsSaving] = useState(false);
+  const [permSaveStatus, setPermSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [privilegedUsers, setPrivilegedUsers] = useState<PrivilegedUserRow[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -50,13 +50,17 @@ export default function ModerationSettingsClient({
     void loadPrivilegedUsers();
   }, []);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    const result = await updateModeratorPermissionConfig(permissions);
+  const togglePermission = async (key: keyof ModeratorCapabilityState) => {
+    const newPermissions = { ...permissions, [key]: !permissions[key] };
+    setPermissions(newPermissions);
+    setPermSaveStatus('saving');
+
+    const result = await updateModeratorPermissionConfig(newPermissions);
 
     if (!result.success || !result.data) {
-      window.alert(result.errors?.general || 'Failed to save settings');
-      setIsSaving(false);
+      setPermissions(permissions);
+      setPermSaveStatus('error');
+      window.setTimeout(() => setPermSaveStatus('idle'), 3000);
       return;
     }
 
@@ -70,15 +74,8 @@ export default function ModerationSettingsClient({
       canUpdateRiskLabels: result.data.canUpdateRiskLabels,
     });
     setLastUpdatedAt(result.data.updatedAt);
-    window.alert('Moderator permissions updated successfully.');
-    setIsSaving(false);
-  };
-
-  const togglePermission = (key: keyof ModeratorCapabilityState) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setPermSaveStatus('saved');
+    window.setTimeout(() => setPermSaveStatus('idle'), 2000);
   };
 
   const formattedLastUpdated =
@@ -173,7 +170,7 @@ export default function ModerationSettingsClient({
             className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
           >
             <option value="MODERATOR">MODERATOR</option>
-            <option value="ADMIN">ADMIN (superadmin only)</option>
+            <option value="ADMIN">ADMIN</option>
           </select>
         </div>
 
@@ -245,7 +242,18 @@ export default function ModerationSettingsClient({
               Configure what moderator accounts can access without admin intervention.
             </p>
           </div>
-          <p className="text-xs text-slate-500">Last updated: {formattedLastUpdated}</p>
+          <div className="flex items-center gap-3">
+            {permSaveStatus === 'saving' && (
+              <span className="text-xs text-slate-400">Saving...</span>
+            )}
+            {permSaveStatus === 'saved' && (
+              <span className="text-xs text-green-400">Saved</span>
+            )}
+            {permSaveStatus === 'error' && (
+              <span className="text-xs text-red-400">Failed to save</span>
+            )}
+            <p className="text-xs text-slate-500">Last updated: {formattedLastUpdated}</p>
+          </div>
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -254,7 +262,8 @@ export default function ModerationSettingsClient({
             <input
               type="checkbox"
               checked={permissions.canModerateMessages}
-              onChange={() => togglePermission('canModerateMessages')}
+              disabled={permSaveStatus === 'saving'}
+              onChange={() => void togglePermission('canModerateMessages')}
             />
           </label>
           <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
@@ -262,7 +271,8 @@ export default function ModerationSettingsClient({
             <input
               type="checkbox"
               checked={permissions.canVerifyProfiles}
-              onChange={() => togglePermission('canVerifyProfiles')}
+              disabled={permSaveStatus === 'saving'}
+              onChange={() => void togglePermission('canVerifyProfiles')}
             />
           </label>
           <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
@@ -270,7 +280,8 @@ export default function ModerationSettingsClient({
             <input
               type="checkbox"
               checked={permissions.canVerifyPhotos}
-              onChange={() => togglePermission('canVerifyPhotos')}
+              disabled={permSaveStatus === 'saving'}
+              onChange={() => void togglePermission('canVerifyPhotos')}
             />
           </label>
           <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
@@ -278,7 +289,8 @@ export default function ModerationSettingsClient({
             <input
               type="checkbox"
               checked={permissions.canManageMembers}
-              onChange={() => togglePermission('canManageMembers')}
+              disabled={permSaveStatus === 'saving'}
+              onChange={() => void togglePermission('canManageMembers')}
             />
           </label>
           <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
@@ -286,7 +298,8 @@ export default function ModerationSettingsClient({
             <input
               type="checkbox"
               checked={permissions.canInspectSubscriptions}
-              onChange={() => togglePermission('canInspectSubscriptions')}
+              disabled={permSaveStatus === 'saving'}
+              onChange={() => void togglePermission('canInspectSubscriptions')}
             />
           </label>
           <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
@@ -294,7 +307,8 @@ export default function ModerationSettingsClient({
             <input
               type="checkbox"
               checked={permissions.canManageReports}
-              onChange={() => togglePermission('canManageReports')}
+              disabled={permSaveStatus === 'saving'}
+              onChange={() => void togglePermission('canManageReports')}
             />
           </label>
           <label className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-200">
@@ -302,7 +316,8 @@ export default function ModerationSettingsClient({
             <input
               type="checkbox"
               checked={permissions.canUpdateRiskLabels}
-              onChange={() => togglePermission('canUpdateRiskLabels')}
+              disabled={permSaveStatus === 'saving'}
+              onChange={() => void togglePermission('canUpdateRiskLabels')}
             />
           </label>
         </div>
@@ -410,15 +425,7 @@ export default function ModerationSettingsClient({
         </div>
       </section>
 
-      <div className="flex justify-end">
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="rounded-full bg-accent-500 px-6 py-2 text-sm font-semibold text-slate-950 hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isSaving ? 'Saving...' : 'Save Settings'}
-        </button>
-      </div>
+
     </div>
   );
 }

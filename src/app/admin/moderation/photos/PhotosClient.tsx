@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   getPendingPhotos,
   getPhotoVerificationStats,
   approvePhoto,
   rejectPhoto,
-  blurPhoto,
   type PhotoForVerification,
 } from '@/app/actions/admin/photo-verification';
 
 export function PhotosClient() {
+  const DEFAULT_LIMIT = 8;
   const [photos, setPhotos] = useState<PhotoForVerification[]>([]);
   const [stats, setStats] = useState({
     pending: 0,
@@ -26,21 +26,23 @@ export function PhotosClient() {
   const [riskLevel, setRiskLevel] = useState<'GREEN' | 'AMBER' | 'RED' | 'ALL'>('ALL');
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoForVerification | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState<'approve' | 'reject' | 'blur'>('approve');
+  const [modalAction, setModalAction] = useState<'approve' | 'reject'>('approve');
   const [modalReason, setModalReason] = useState('');
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(
+    async (active: { page: number; status: typeof status; search: string; riskLevel: typeof riskLevel }) => {
     setLoading(true);
     try {
       const [photosResult, statsResult] = await Promise.all([
         getPendingPhotos({
-          status,
-          profileRiskLevel: riskLevel === 'ALL' ? undefined : riskLevel,
-          search: search || undefined,
-          page,
-          limit: 12,
+          status: active.status,
+          profileRiskLevel: active.riskLevel === 'ALL' ? undefined : active.riskLevel,
+          search: active.search || undefined,
+          page: active.page,
+          limit: DEFAULT_LIMIT,
         }),
         getPhotoVerificationStats(),
       ]);
@@ -56,13 +58,33 @@ export function PhotosClient() {
     } catch (error) {
       console.error('Failed to load photos:', error);
     } finally {
+      setHasLoaded(true);
       setLoading(false);
     }
-  }, [page, status, search, riskLevel]);
+    },
+    []
+  );
+
+  const handleApplyFilters = () => {
+    const nextPage = 1;
+    setPage(nextPage);
+    void loadData({ page: nextPage, status, search, riskLevel });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const safeMax = Math.max(1, totalPages);
+    const nextPage = Math.min(Math.max(1, newPage), safeMax);
+    setPage(nextPage);
+    void loadData({ page: nextPage, status, search, riskLevel });
+  };
+
+  useEffect(() => {
+    void loadData({ page: 1, status: 'PENDING', search: '', riskLevel: 'ALL' });
+  }, [loadData]);
 
   const handleOpenModal = (
     photo: PhotoForVerification,
-    action: 'approve' | 'reject' | 'blur'
+    action: 'approve' | 'reject'
   ) => {
     setSelectedPhoto(photo);
     setModalAction(action);
@@ -79,17 +101,15 @@ export function PhotosClient() {
 
       if (modalAction === 'approve') {
         result = await approvePhoto(selectedPhoto.id, modalReason || undefined);
-      } else if (modalAction === 'reject') {
-        result = await rejectPhoto(selectedPhoto.id, modalReason);
       } else {
-        result = await blurPhoto(selectedPhoto.id, modalReason || undefined);
+        result = await rejectPhoto(selectedPhoto.id, modalReason);
       }
 
       if (result.success) {
         setShowModal(false);
         setSelectedPhoto(null);
         setError(null);
-        await loadData();
+        await loadData({ page, status, search, riskLevel });
       } else {
         setError(result.errors?.general || 'Unknown error occurred');
       }
@@ -184,7 +204,7 @@ export function PhotosClient() {
           </select>
 
           <button
-            onClick={loadData}
+            onClick={handleApplyFilters}
             disabled={loading}
             className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
           >
@@ -208,7 +228,11 @@ export function PhotosClient() {
 
       {/* Photos Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {photos.length === 0 ? (
+        {!hasLoaded ? (
+          <div className="col-span-full rounded-xl border border-slate-800 bg-slate-900/50 p-8 text-center">
+            <p className="text-slate-400">Loading photos...</p>
+          </div>
+        ) : photos.length === 0 ? (
           <div className="col-span-full rounded-xl border border-slate-800 bg-slate-900/50 p-8 text-center">
             <p className="text-slate-400">No photos found</p>
           </div>
@@ -220,18 +244,12 @@ export function PhotosClient() {
             >
               {/* Photo Preview */}
               <div className="relative h-48 bg-slate-800">
-                {photo.isBlurred ? (
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-800">
-                    <span className="text-xs text-slate-400">BLURRED</span>
-                  </div>
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={photo.url}
-                    alt="User photo"
-                    className="h-full w-full object-cover"
-                  />
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo.url}
+                  alt="User photo"
+                  className="h-full w-full object-cover"
+                />
                 {photo.isPrimary && (
                   <div className="absolute top-2 right-2 rounded bg-accent-600 px-2 py-1 text-xs font-semibold text-white">
                     Primary
@@ -298,12 +316,6 @@ export function PhotosClient() {
                       </button>
                     </>
                   )}
-                  <button
-                    onClick={() => handleOpenModal(photo, 'blur')}
-                    className="flex-1 rounded bg-slate-600 px-2 py-1 text-xs font-medium text-white hover:bg-slate-700"
-                  >
-                    {photo.isBlurred ? 'Unblur' : 'Blur'}
-                  </button>
                 </div>
               </div>
             </div>
@@ -318,15 +330,15 @@ export function PhotosClient() {
         </p>
         <div className="flex gap-2">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => handlePageChange(page - 1)}
             disabled={page === 1 || loading}
             className="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50"
           >
             ← Prev
           </button>
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages || loading}
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages || loading || totalPages === 0}
             className="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50"
           >
             Next →
@@ -341,11 +353,7 @@ export function PhotosClient() {
             <h2 className="text-lg font-semibold text-slate-50 mb-4">
               {modalAction === 'approve'
                 ? 'Approve Photo'
-                : modalAction === 'reject'
-                  ? 'Reject Photo'
-                  : selectedPhoto.isBlurred
-                    ? 'Unblur Photo'
-                    : 'Blur Photo'}
+                : 'Reject Photo'}
             </h2>
 
             <div className="space-y-4">
@@ -360,9 +368,7 @@ export function PhotosClient() {
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   {modalAction === 'approve'
                     ? 'Approval Notes (optional)'
-                    : modalAction === 'reject'
-                      ? 'Rejection Reason (required)'
-                      : 'Blur Reason (optional)'}
+                    : 'Rejection Reason (required)'}
                 </label>
                 <textarea
                   value={modalReason}

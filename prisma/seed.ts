@@ -70,6 +70,7 @@ async function main() {
       canModerateMessages: true,
       canVerifyProfiles: true,
       canVerifyPhotos: true,
+      canManageMembers: true,
       canInspectSubscriptions: true,
       canManageReports: true,
       canUpdateRiskLabels: true,
