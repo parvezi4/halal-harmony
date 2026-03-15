@@ -13,6 +13,8 @@ Tests:       200 passed, 200 total
 Time:        ~10 seconds
 ```
 
+Note: totals increase as new payment suites are added. Re-run `npm run test` for latest counts.
+
 ### Test Breakdown
 
 | Suite | Tests |
@@ -28,6 +30,9 @@ Time:        ~10 seconds
 | Photo Constraints | varies |
 | Onboarding Validation | varies |
 | Profile CRUD | varies |
+| Stripe Checkout API | 4 |
+| Stripe Webhook API | 5 |
+| Billing Actions/APIs | 13 |
 
 ---
 
@@ -239,6 +244,30 @@ After seed, expected 3 active reports:
 - [ ] Search by name or email works
 - [ ] Sort by start date / end date / created date works
 - [ ] Each row shows: alias, email, plan name, status, days remaining
+
+---
+
+### 8b. Payments (Member + Admin)
+
+#### Member Billing
+
+- [ ] Login as member and open `/dashboard/billing`
+- [ ] Confirm current plan card and invoice table render
+- [ ] Trigger cancel auto-renew and confirm success state refresh
+
+#### Stripe Webhook Sync
+
+- [ ] Run Stripe CLI forwarding to `/api/stripe/webhook`
+- [ ] Complete a test checkout and confirm webhook event delivery success
+- [ ] Verify subscription table updates (`stripeCustomerId`, `stripeSubscriptionId`, status)
+
+#### Admin Payments
+
+- [ ] Login as admin and open `/admin/payments`
+- [ ] Confirm payments operations placeholder cards render
+- [ ] Confirm communication placeholder table renders
+
+For full payment QA details and test cards, follow `docs/MANUAL_QA_PAYMENTS.md`.
 
 ---
 

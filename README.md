@@ -55,6 +55,14 @@ npm run dev
 
 Then open `http://localhost:3000` in your browser.
 
+### Stripe Sandbox Setup
+
+Payment setup uses Stripe sandbox/test mode in this phase.
+
+- For full local and preview setup instructions, see [docs/MANUAL_QA_PAYMENTS.md](docs/MANUAL_QA_PAYMENTS.md).
+- Environment variable templates are documented in [.env.example](.env.example).
+- Internal rollout and verification guidance is documented in [docs/PRE_COMMIT_VERIFICATION.md](docs/PRE_COMMIT_VERIFICATION.md).
+
 ### Database Management
 
 **View/Edit data in the database:**
@@ -145,6 +153,9 @@ npm run typecheck         # Run TypeScript type checking
   - Only MEMBER role accepted at `/auth/login`
 
 - ✅ **Admin RBAC** - capability-gated dashboard, privileged user management, SUPERADMIN protection
+- ✅ **Stripe Checkout API** (`/api/stripe/checkout`) - auth, interval validation, success, and error handling
+- ✅ **Stripe Webhook API** (`/api/stripe/webhook`) - signature validation and subscription lifecycle synchronization
+- ✅ **Billing APIs** (`/api/stripe/billing-history`, `/api/stripe/cancel`) - history retrieval and cancel auto-renew flows
 3. **Type checking** - Validates TypeScript types across the codebase
 
 If any check fails, the push is blocked. This prevents bugs from reaching `master`.
@@ -200,6 +211,8 @@ describe('POST /api/your-route', () => {
 ```
 
 For more details, see the [API Testing section in PLAN.md](docs/PLAN.md).
+
+For payment-specific manual scenarios, see [MANUAL_QA_PAYMENTS.md](docs/MANUAL_QA_PAYMENTS.md).
 
 ### Test Credentials
 
@@ -267,6 +280,13 @@ If your local database was created before moderator support was added, run `npx 
 - Ahmed and Fatima have sample message history for testing messaging
 - Zainab has the maximum number of photos (5) for testing photo limits
 - Sara demonstrates the minimum age requirement (14 years old)
+
+**Payments Features (Current):**
+
+- Member billing experience is available for subscriptions, invoice history, and cancel auto-renew flow.
+- Stripe checkout and webhook synchronization are implemented in sandbox mode.
+- Payment communication placeholders are in place for future confirmation/failure notifications and admin follow-up workflows.
+- Detailed implementation and QA steps are documented in [docs/MANUAL_QA_PAYMENTS.md](docs/MANUAL_QA_PAYMENTS.md).
 
 ## Project structure (high level)
 
