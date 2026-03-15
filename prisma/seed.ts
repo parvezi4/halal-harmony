@@ -9,6 +9,7 @@ const DEFAULT_PHOTO_BYTES = 180_000;
 async function main() {
   console.log('Seeding database with test users...');
 
+  await prisma.paymentCommunicationLog.deleteMany();
   await prisma.moderationAuditLog.deleteMany();
   await prisma.moderatorPermissionConfig.deleteMany();
   await prisma.adminAccount.deleteMany();
@@ -695,6 +696,27 @@ async function main() {
         reportedUserId: suspendedFlaggedUser.id,
         reason: 'Historical harassment report retained for admin reference.',
         status: 'RESOLVED',
+      },
+    ],
+  });
+
+  await prisma.paymentCommunicationLog.createMany({
+    data: [
+      {
+        actorId: adminUser.id,
+        memberId: user2.id,
+        eventType: 'PAYMENT_FAILED',
+        reason: 'BANK_DECLINE',
+        status: 'PENDING_FOLLOW_UP',
+        note: 'Asked member to retry with sufficient balance and contact support if repeated.',
+      },
+      {
+        actorId: adminUser.id,
+        memberId: user1.id,
+        eventType: 'SUBSCRIPTION_CONFIRMED',
+        reason: 'N/A',
+        status: 'RESOLVED',
+        note: 'Confirmed successful renewal in Stripe dashboard.',
       },
     ],
   });

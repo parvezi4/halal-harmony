@@ -27,6 +27,8 @@ model User {
   favoritedBy    Favorite[]      @relation("UserFavoritedBy")
   profileViews   ProfileView[]   @relation("ViewerProfileViews")
   moderationAuditLogs       ModerationAuditLog[]      @relation("ModerationActor")
+  paymentCommunicationLogsAuthored PaymentCommunicationLog[] @relation("PaymentLogActor")
+  paymentCommunicationLogsForMember PaymentCommunicationLog[] @relation("PaymentLogMember")
   moderationConfigUpdates   ModeratorPermissionConfig[] @relation("PermissionConfigUpdatedBy")
   warningsReceived          ModerationWarning[]        @relation("WarningRecipient")
   warningsIssued            ModerationWarning[]        @relation("WarningIssuer")
@@ -164,6 +166,22 @@ model ModerationAuditLog {
 
   @@index([actorId, createdAt])
   @@index([targetType, targetId])
+}
+
+model PaymentCommunicationLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation("PaymentLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+  memberId  String
+  member    User     @relation("PaymentLogMember", fields: [memberId], references: [id], onDelete: Cascade)
+  eventType String
+  reason    String
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([memberId, createdAt])
 }
 
 enum Gender {
