@@ -119,7 +119,7 @@ export default function PricingPage() {
                   Get started
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/dashboard/billing"
                   className="rounded-full border border-slate-700 bg-slate-950 px-5 py-2 text-xs font-semibold text-slate-100 hover:border-slate-500"
                 >
                   Manage subscription (when logged in)
