@@ -16,6 +16,7 @@ describe('GET /api/stripe/billing-history', () => {
       data: {
         currentSubscription: null,
         invoices: [],
+        subscriptionHistory: [],
       },
     });
 

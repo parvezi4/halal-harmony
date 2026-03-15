@@ -8,6 +8,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     subscription: {
       findFirst: jest.fn(),
+      findMany: jest.fn(),
       update: jest.fn(),
     },
   },
@@ -51,11 +52,22 @@ describe('subscription actions', () => {
         stripeCustomerId: null,
         plan: { name: 'Premium Monthly' },
       });
+      (prisma.subscription.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'sub_local_1',
+          status: 'ACTIVE',
+          startDate: new Date('2026-03-01T00:00:00.000Z'),
+          endDate: new Date('2026-04-01T00:00:00.000Z'),
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          plan: { name: 'Premium Monthly' },
+        },
+      ]);
 
       const result = await getBillingHistory();
 
       expect(result.success).toBe(true);
       expect(result.data?.invoices).toEqual([]);
+      expect(result.data?.subscriptionHistory).toHaveLength(1);
       expect(stripe.invoices.list).not.toHaveBeenCalled();
     });
 
@@ -70,6 +82,16 @@ describe('subscription actions', () => {
         stripeCustomerId: 'cus_123',
         plan: { name: 'Premium Monthly' },
       });
+      (prisma.subscription.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'sub_local_1',
+          status: 'ACTIVE',
+          startDate: new Date('2026-03-01T00:00:00.000Z'),
+          endDate: new Date('2026-04-01T00:00:00.000Z'),
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          plan: { name: 'Premium Monthly' },
+        },
+      ]);
       (stripe.invoices.list as jest.Mock).mockResolvedValue({
         data: [
           {
@@ -89,10 +111,78 @@ describe('subscription actions', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.invoices).toHaveLength(1);
+      expect(result.data?.subscriptionHistory).toHaveLength(1);
       expect(stripe.invoices.list).toHaveBeenCalledWith({
         customer: 'cus_123',
         limit: 10,
       });
+    });
+
+    it('returns empty invoices when stripe customer no longer exists', async () => {
+      mockGetServerSession.mockResolvedValue({ user: { id: 'user-1' } });
+      (prisma.subscription.findFirst as jest.Mock).mockResolvedValue({
+        id: 'sub_local_1',
+        status: 'ACTIVE',
+        startDate: new Date('2026-03-01T00:00:00.000Z'),
+        endDate: new Date('2026-04-01T00:00:00.000Z'),
+        stripeSubscriptionId: 'sub_stripe_1',
+        stripeCustomerId: 'cus_missing',
+        plan: { name: 'Premium Monthly' },
+      });
+      (prisma.subscription.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'sub_local_1',
+          status: 'ACTIVE',
+          startDate: new Date('2026-03-01T00:00:00.000Z'),
+          endDate: new Date('2026-04-01T00:00:00.000Z'),
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          plan: { name: 'Premium Monthly' },
+        },
+      ]);
+      (stripe.invoices.list as jest.Mock).mockRejectedValue({
+        code: 'resource_missing',
+        raw: { code: 'resource_missing', param: 'customer' },
+        message: 'No such customer: cus_missing',
+      });
+
+      const result = await getBillingHistory();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.invoices).toEqual([]);
+      expect(result.data?.subscriptionHistory).toHaveLength(1);
+    });
+
+    it('returns empty invoices when stripe invoice fetch fails unexpectedly', async () => {
+      mockGetServerSession.mockResolvedValue({ user: { id: 'user-1' } });
+      (prisma.subscription.findFirst as jest.Mock).mockResolvedValue({
+        id: 'sub_local_1',
+        status: 'ACTIVE',
+        startDate: new Date('2026-03-01T00:00:00.000Z'),
+        endDate: new Date('2026-04-01T00:00:00.000Z'),
+        stripeSubscriptionId: 'sub_stripe_1',
+        stripeCustomerId: 'cus_test_1',
+        plan: { name: 'Premium Monthly' },
+      });
+      (prisma.subscription.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'sub_local_1',
+          status: 'ACTIVE',
+          startDate: new Date('2026-03-01T00:00:00.000Z'),
+          endDate: new Date('2026-04-01T00:00:00.000Z'),
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          plan: { name: 'Premium Monthly' },
+        },
+      ]);
+      (stripe.invoices.list as jest.Mock).mockRejectedValue({
+        type: 'StripeAuthenticationError',
+        message: 'Invalid API key provided',
+      });
+
+      const result = await getBillingHistory();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.invoices).toEqual([]);
+      expect(result.data?.subscriptionHistory).toHaveLength(1);
     });
   });
 

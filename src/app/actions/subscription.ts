@@ -5,6 +5,27 @@ import { authOptions } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/config/stripe';
 
+function isMissingStripeCustomerError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const maybeError = error as {
+    type?: string;
+    code?: string;
+    raw?: { code?: string; param?: string };
+    message?: string;
+  };
+
+  const code = maybeError.code || maybeError.raw?.code;
+  const message = maybeError.message?.toLowerCase() || '';
+
+  return (
+    code === 'resource_missing' &&
+    (message.includes('no such customer') || maybeError.raw?.param === 'customer')
+  );
+}
+
 type BillingHistoryResponse = {
   success: boolean;
   errors?: Record<string, string>;
@@ -28,6 +49,14 @@ type BillingHistoryResponse = {
       hostedInvoiceUrl: string | null;
       invoicePdfUrl: string | null;
     }>;
+    subscriptionHistory: Array<{
+      id: string;
+      status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+      planName: string | null;
+      startDate: string;
+      endDate: string;
+      createdAt: string;
+    }>;
   };
 };
 
@@ -50,19 +79,43 @@ export async function getBillingHistory(
       return { success: false, errors: { general: 'Unauthorized' } };
     }
 
-    const currentSubscription = await prisma.subscription.findFirst({
-      where: { userId: session.user.id },
-      include: {
-        plan: {
-          select: {
-            name: true,
+    const [currentSubscription, allSubscriptions] = await Promise.all([
+      prisma.subscription.findFirst({
+        where: { userId: session.user.id },
+        include: {
+          plan: {
+            select: {
+              name: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      prisma.subscription.findMany({
+        where: { userId: session.user.id },
+        include: {
+          plan: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+    ]);
+
+    const subscriptionHistory = allSubscriptions.map((subscription) => ({
+      id: subscription.id,
+      status: subscription.status,
+      planName: subscription.plan?.name || null,
+      startDate: subscription.startDate.toISOString(),
+      endDate: subscription.endDate.toISOString(),
+      createdAt: subscription.createdAt.toISOString(),
+    }));
 
     const parsedSubscription = currentSubscription
       ? {
@@ -82,14 +135,39 @@ export async function getBillingHistory(
         data: {
           currentSubscription: parsedSubscription,
           invoices: [],
+          subscriptionHistory,
         },
       };
     }
 
-    const invoiceResult = await stripe.invoices.list({
-      customer: currentSubscription.stripeCustomerId,
-      limit: Math.max(1, Math.min(limit, 50)),
-    });
+    let invoiceResult;
+    try {
+      invoiceResult = await stripe.invoices.list({
+        customer: currentSubscription.stripeCustomerId,
+        limit: Math.max(1, Math.min(limit, 50)),
+      });
+    } catch (error) {
+      if (isMissingStripeCustomerError(error)) {
+        return {
+          success: true,
+          data: {
+            currentSubscription: parsedSubscription,
+            invoices: [],
+            subscriptionHistory,
+          },
+        };
+      }
+
+      console.warn('Stripe invoice fetch failed; falling back to empty billing history.', error);
+      return {
+        success: true,
+        data: {
+          currentSubscription: parsedSubscription,
+          invoices: [],
+          subscriptionHistory,
+        },
+      };
+    }
 
     const invoices = invoiceResult.data.map((invoice) => ({
       id: invoice.id,
@@ -107,6 +185,7 @@ export async function getBillingHistory(
       data: {
         currentSubscription: parsedSubscription,
         invoices,
+        subscriptionHistory,
       },
     };
   } catch (error) {

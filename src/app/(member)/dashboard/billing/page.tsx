@@ -34,6 +34,14 @@ type BillingHistoryPayload = {
       hostedInvoiceUrl: string | null;
       invoicePdfUrl: string | null;
     }>;
+    subscriptionHistory: Array<{
+      id: string;
+      status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+      planName: string | null;
+      startDate: string;
+      endDate: string;
+      createdAt: string;
+    }>;
   };
 };
 
@@ -91,6 +99,7 @@ export default function MemberBillingPage() {
 
   const current = history?.currentSubscription || null;
   const invoices = history?.invoices || [];
+  const subscriptionHistory = history?.subscriptionHistory || [];
   const canCancel = Boolean(current?.status === 'ACTIVE' && current?.stripeSubscriptionId);
 
   const cancellationCopy = useMemo(() => {
@@ -212,9 +221,7 @@ export default function MemberBillingPage() {
         <h2 className="text-sm font-semibold text-slate-50">Recent billing history</h2>
         {loading ? (
           <p className="mt-3 text-sm text-slate-300">Loading invoices...</p>
-        ) : invoices.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-300">No billing records yet.</p>
-        ) : (
+        ) : invoices.length > 0 ? (
           <div className="mt-3 overflow-x-auto">
             <table className="min-w-full text-left text-xs text-slate-300 sm:text-sm">
               <thead>
@@ -254,6 +261,36 @@ export default function MemberBillingPage() {
               </tbody>
             </table>
           </div>
+        ) : subscriptionHistory.length > 0 ? (
+          <div className="mt-3 space-y-3">
+            <p className="text-xs text-slate-400">
+              Stripe invoice history is not available yet for this account. Showing local subscription history.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-xs text-slate-300 sm:text-sm">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400">
+                    <th className="py-2 pr-4 font-medium">Subscription</th>
+                    <th className="py-2 pr-4 font-medium">Status</th>
+                    <th className="py-2 pr-4 font-medium">Start</th>
+                    <th className="py-2 pr-4 font-medium">End</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscriptionHistory.map((item) => (
+                    <tr key={item.id} className="border-b border-slate-900/80">
+                      <td className="py-2 pr-4">{item.planName || 'Premium'}</td>
+                      <td className="py-2 pr-4">{item.status}</td>
+                      <td className="py-2 pr-4">{formatDate(new Date(item.startDate))}</td>
+                      <td className="py-2 pr-4">{formatDate(new Date(item.endDate))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-slate-300">No billing records yet.</p>
         )}
       </section>
     </div>
