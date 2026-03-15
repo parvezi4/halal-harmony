@@ -140,14 +140,25 @@ export default async function AdminDashboardPage() {
       {/* Additional Cards */}
       <div className="grid gap-4 sm:grid-cols-2">
         {features.canInspectSubscriptions && (
-        <Link
-          href="/admin/subscriptions"
-          className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
-        >
-          <div className="text-2xl font-bold text-yellow-400">💳</div>
-          <h3 className="mt-2 font-semibold text-slate-50">Subscriptions</h3>
-          <p className="mt-1 text-sm text-slate-400">View and manage subscriptions</p>
-        </Link>
+          <>
+            <Link
+              href="/admin/subscriptions"
+              className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
+            >
+              <div className="text-2xl font-bold text-yellow-400">💳</div>
+              <h3 className="mt-2 font-semibold text-slate-50">Subscriptions</h3>
+              <p className="mt-1 text-sm text-slate-400">View and manage subscriptions</p>
+            </Link>
+
+            <Link
+              href="/admin/payments"
+              className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-slate-700 hover:bg-slate-850 transition"
+            >
+              <div className="text-2xl font-bold text-fuchsia-400">✉️</div>
+              <h3 className="mt-2 font-semibold text-slate-50">Payments Ops</h3>
+              <p className="mt-1 text-sm text-slate-400">Refund and communication workflows</p>
+            </Link>
+          </>
         )}
 
         {features.canManageMembers && (

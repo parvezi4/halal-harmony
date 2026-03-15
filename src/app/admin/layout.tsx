@@ -45,9 +45,14 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               </Link>
             )}
             {features.canInspectSubscriptions && (
-              <Link href="/admin/subscriptions" className="text-slate-200 hover:text-accent-200">
-                Subscriptions
-              </Link>
+              <>
+                <Link href="/admin/subscriptions" className="text-slate-200 hover:text-accent-200">
+                  Subscriptions
+                </Link>
+                <Link href="/admin/payments" className="text-slate-200 hover:text-accent-200">
+                  Payments
+                </Link>
+              </>
             )}
             {features.canManageReports && (
               <Link href="/admin/reports" className="text-slate-200 hover:text-accent-200">

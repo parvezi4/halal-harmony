@@ -50,6 +50,9 @@ export default async function MemberLayout({ children }: { children: ReactNode }
             <Link href="/profile" className="text-slate-200 hover:text-accent-200">
               Profile
             </Link>
+            <Link href="/dashboard/billing" className="text-slate-200 hover:text-accent-200">
+              Billing
+            </Link>
             <div className="ml-2 border-l border-slate-700" />
             <LogoutButton />
           </nav>

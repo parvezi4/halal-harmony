@@ -152,7 +152,7 @@ export default function DashboardPage() {
         <Link href="/favorites" className="rounded-full border border-slate-700 bg-slate-900 px-4 py-2 font-semibold text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800">
           Favorites
         </Link>
-        <Link href="/pricing" className="rounded-full border border-slate-700 bg-slate-900 px-4 py-2 font-semibold text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800">
+        <Link href="/dashboard/billing" className="rounded-full border border-slate-700 bg-slate-900 px-4 py-2 font-semibold text-slate-100 transition-colors hover:border-slate-500 hover:bg-slate-800">
           Manage subscription
         </Link>
       </section>
