@@ -49,11 +49,38 @@ Admin examples:
 
 ## 3. Stripe Test Cards
 
-Use standard Stripe sandbox cards in checkout:
+All test cards accept **any future expiry date** and **any 3-digit CVC**. Use any name and ZIP.
 
-- Success card: `4242 4242 4242 4242`
-- Payment failure card: `4000 0000 0000 9995`
-- Any future expiry date and any CVC/ZIP accepted in test mode.
+### Happy path
+
+| Card number           | Brand | Behaviour                                |
+| --------------------- | ----- | ---------------------------------------- |
+| `4242 4242 4242 4242` | Visa  | Always succeeds                          |
+| `5555 5555 5555 4444` | MC    | Always succeeds                          |
+
+### 3D Secure (authentication required)
+
+| Card number           | Brand | Behaviour                                              |
+| --------------------- | ----- | ------------------------------------------------------ |
+| `4000 0025 0000 3155` | Visa  | Redirects to 3DS modal — click **Authenticate** to pass |
+| `4000 0000 0000 3220` | Visa  | 3DS required; click **Fail** in modal to test decline  |
+
+### Decline scenarios
+
+| Card number           | Brand | Decline reason          |
+| --------------------- | ----- | ----------------------- |
+| `4000 0000 0000 9995` | Visa  | Insufficient funds      |
+| `4000 0000 0000 0002` | Visa  | Generic decline         |
+| `4000 0000 0000 0069` | Visa  | Expired card            |
+| `4000 0000 0000 9987` | Visa  | Lost card               |
+
+### Subscription / webhook testing
+
+| Card number           | Brand | Behaviour                                                               |
+| --------------------- | ----- | ----------------------------------------------------------------------- |
+| `4000 0000 0000 0341` | Visa  | Attaches successfully but **first recurring charge fails** — useful for testing `invoice.payment_failed` webhook path |
+
+> Full reference: https://docs.stripe.com/testing#cards
 
 ---
 

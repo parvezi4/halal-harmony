@@ -5,10 +5,10 @@ import Link from 'next/link';
 import {
   createPaymentCommunicationLog,
   getPaymentCommunicationLogs,
-  PAYMENT_COMMUNICATION_OPTIONS,
   type PaymentCommunicationInput,
   type PaymentCommunicationLog,
 } from '@/app/actions/admin/payments';
+import { PAYMENT_COMMUNICATION_OPTIONS } from '@/lib/payments/communication-options';
 
 const EVENT_LABELS: Record<string, string> = {
   PAYMENT_FAILED: 'Payment failed',

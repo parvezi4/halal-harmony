@@ -21,6 +21,17 @@ function requireEnv(name: string): string {
 function createStripeClient(): Stripe {
   const secretKey = requireEnv("STRIPE_SECRET_KEY");
 
+  const looksLikePlaceholder =
+    secretKey.includes('your_test_secret_key_here') ||
+    secretKey.includes('****************') ||
+    secretKey.endsWith('_here');
+
+  if (looksLikePlaceholder) {
+    throw new Error(
+      'STRIPE_SECRET_KEY appears to be a placeholder. Set a real Stripe test secret key (sk_test_...) in your environment.'
+    );
+  }
+
   const isLiveKey = secretKey.startsWith("sk_live_");
   const allowLive = process.env.STRIPE_ALLOW_LIVE === "true";
 

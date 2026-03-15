@@ -3,19 +3,12 @@
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrModerator } from '@/lib/admin/access';
 import { ADMIN_CAPABILITIES } from '@/lib/admin/capabilities';
-
-const EVENT_TYPES = [
-  'PAYMENT_FAILED',
-  'PAYMENT_RECOVERED',
-  'SUBSCRIPTION_CONFIRMED',
-  'SUBSCRIPTION_CANCELLED',
-  'ADMIN_OUTREACH',
-] as const;
-
-const STATUS_TYPES = ['PENDING_FOLLOW_UP', 'RESOLVED', 'NOT_REQUIRED'] as const;
-
-type PaymentEventType = (typeof EVENT_TYPES)[number];
-type PaymentLogStatus = (typeof STATUS_TYPES)[number];
+import {
+  PAYMENT_COMMUNICATION_EVENT_TYPES,
+  PAYMENT_COMMUNICATION_STATUS_TYPES,
+  type PaymentEventType,
+  type PaymentLogStatus,
+} from '@/lib/payments/communication-options';
 
 export interface PaymentCommunicationInput {
   memberEmail: string;
@@ -77,11 +70,11 @@ export async function getPaymentCommunicationLogs(
 
     const normalized: PaymentCommunicationLog[] = logs.map((log) => {
       const eventType =
-        EVENT_TYPES.includes(log.eventType as PaymentEventType)
+        PAYMENT_COMMUNICATION_EVENT_TYPES.includes(log.eventType as PaymentEventType)
           ? (log.eventType as PaymentEventType)
           : 'ADMIN_OUTREACH';
       const status =
-        STATUS_TYPES.includes(log.status as PaymentLogStatus)
+        PAYMENT_COMMUNICATION_STATUS_TYPES.includes(log.status as PaymentLogStatus)
           ? (log.status as PaymentLogStatus)
           : 'PENDING_FOLLOW_UP';
 
@@ -125,11 +118,11 @@ export async function createPaymentCommunicationLog(
     return { success: false, error: 'Enter a valid member email' };
   }
 
-  if (!EVENT_TYPES.includes(eventType)) {
+  if (!PAYMENT_COMMUNICATION_EVENT_TYPES.includes(eventType)) {
     return { success: false, error: 'Invalid event type' };
   }
 
-  if (!STATUS_TYPES.includes(status)) {
+  if (!PAYMENT_COMMUNICATION_STATUS_TYPES.includes(status)) {
     return { success: false, error: 'Invalid status' };
   }
 
@@ -160,8 +153,3 @@ export async function createPaymentCommunicationLog(
     return { success: false, error: 'Failed to save payment communication log' };
   }
 }
-
-export const PAYMENT_COMMUNICATION_OPTIONS = {
-  eventTypes: EVENT_TYPES,
-  statuses: STATUS_TYPES,
-};

@@ -5,6 +5,11 @@ import {
   updateModeratorPermissionConfig,
 } from '@/app/actions/admin/permissions';
 
+jest.mock('next/cache', () => ({
+  revalidatePath: jest.fn(),
+  revalidateTag: jest.fn(),
+}));
+
 jest.mock('@/lib/admin/access', () => ({
   verifyAdminOrModerator: jest.fn(),
 }));

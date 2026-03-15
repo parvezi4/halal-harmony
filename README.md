@@ -288,6 +288,17 @@ If your local database was created before moderator support was added, run `npx 
 - Payment communication placeholders are in place for future confirmation/failure notifications and admin follow-up workflows.
 - Detailed implementation and QA steps are documented in [docs/MANUAL_QA_PAYMENTS.md](docs/MANUAL_QA_PAYMENTS.md).
 
+**Stripe test cards (sandbox only):**
+
+| Card number           | Behaviour                                 |
+| --------------------- | ----------------------------------------- |
+| `4242 4242 4242 4242` | Always succeeds                           |
+| `4000 0025 0000 3155` | Requires 3D Secure authentication         |
+| `4000 0000 0000 9995` | Declined — insufficient funds             |
+| `4000 0000 0000 0341` | Attaches but first recurring charge fails |
+
+Use any future expiry date and any 3-digit CVC. Full card list: [docs/MANUAL_QA_PAYMENTS.md](docs/MANUAL_QA_PAYMENTS.md#3-stripe-test-cards).
+
 ## Project structure (high level)
 
 - `src/app/` – App Router pages, layouts, and route handlers
