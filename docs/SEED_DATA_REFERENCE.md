@@ -314,7 +314,10 @@ Comprehensive test users covering all onboarding scenarios and edge cases.
 
 - All users have password: `Password123!`
 - Admin test user: `admin@example.com` / `Password123!`
-- Moderator test user: `moderator@example.com` / `Password123!`
+- Male admin test user: `ops.male@example.com` / `Password123!`
+- Female admin test user: `ops.female@example.com` / `Password123!`
+- Male moderator test user: `moderator.male@example.com` / `Password123!`
+- Female moderator test user: `moderator.female@example.com` / `Password123!`
 - If a local database predates moderator-role support, run `npx prisma db push` once so the `MODERATOR` enum value exists before testing moderator login.
 - Ahmed and Fatima have active Premium subscriptions
 - Ahmed and Fatima have a message thread with 2 clean (APPROVED) messages

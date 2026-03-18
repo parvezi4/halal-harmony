@@ -109,7 +109,7 @@ isProject: false
 - Privileged user management UI in `/admin/moderation/settings`: SUPERADMIN/ADMIN can create new admins or moderators (email + password), delete admins and moderators, and configure per-moderator capability toggles. SUPERADMIN row shows "Protected" and has no delete button.
 - Audit log access restricted to SUPERADMIN and ADMIN only; moderators redirect to `/admin/moderation`.
 - `canManageMembers` capability added; members page and all member actions require this capability.
-- Migration `20260313102035_add_superadmin_auth_split` applied; seed updated with SUPERADMIN (`admin@example.com`) and new ADMIN example (`ops.admin@example.com`).
+- Migration `20260313102035_add_superadmin_auth_split` applied; seed updated with SUPERADMIN (`admin@example.com`) plus explicit male/female ADMIN and MODERATOR examples for moderation-scope testing.
 - 200 tests total (26 suites) passing.
 - Docs updated: README portal guidance, `SEED_DATA_REFERENCE.md` credentials, `PLAN.md` snapshot.
 

@@ -23,5 +23,10 @@ export default async function ModerationSettingsPage() {
     );
   }
 
-  return <ModerationSettingsClient initialPermissions={permissionResult.data} />;
+  return (
+    <ModerationSettingsClient
+      initialPermissions={permissionResult.data}
+      currentRole={access.role}
+    />
+  );
 }

@@ -499,11 +499,13 @@ These are textual/ASCII low-fidelity wireframes for key MVP screens, aligned wit
 ---------------------------------------------------------
 | PRIVILEGED USERS                                       |
 ---------------------------------------------------------
-| Email                  | Role       | Created    | Act |
-|------------------------|------------|------------|-----|
-| admin@example.com      | SUPERADMIN | 2026-03-01 | Protected |
-| ops.admin@example.com  | ADMIN      | 2026-03-13 | [Delete] |
-| moderator@example.com  | MODERATOR  | 2026-03-01 | [Delete] |
+| Email                      | Role       | Gender | Created    | Act |
+|----------------------------|------------|--------|------------|-----|
+| admin@example.com          | SUPERADMIN | MALE   | 2026-03-01 | Protected |
+| ops.male@example.com       | ADMIN      | MALE   | 2026-03-13 | [Gender Toggle] [Delete] |
+| ops.female@example.com     | ADMIN      | FEMALE | 2026-03-13 | [Gender Toggle] [Delete] |
+| moderator.male@example.com | MODERATOR  | MALE   | 2026-03-01 | [Gender Toggle] [Delete] |
+| moderator.female@example.com | MODERATOR | FEMALE | 2026-03-01 | [Gender Toggle] [Delete] |
 ---------------------------------------------------------
 | Create Privileged User                                 |
 |  Email:    [____________________________]              |

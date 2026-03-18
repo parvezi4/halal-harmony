@@ -89,7 +89,7 @@ describe('validateAdminLogin', () => {
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-    await expect(validateAdminLogin('ops.admin@example.com', 'Password123!')).resolves.toEqual({
+    await expect(validateAdminLogin('ops.male@example.com', 'Password123!')).resolves.toEqual({
       success: true,
     });
   });
@@ -105,7 +105,7 @@ describe('validateAdminLogin', () => {
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-    await expect(validateAdminLogin('moderator@example.com', 'Password123!')).resolves.toEqual({
+    await expect(validateAdminLogin('moderator.male@example.com', 'Password123!')).resolves.toEqual({
       success: true,
     });
   });

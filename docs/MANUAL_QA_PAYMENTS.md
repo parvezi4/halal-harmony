@@ -43,7 +43,8 @@ Member examples:
 
 Admin examples:
 - `admin@example.com` / `Password123!`
-- `ops.admin@example.com` / `Password123!`
+- `ops.male@example.com` / `Password123!`
+- `ops.female@example.com` / `Password123!`
 
 ---
 

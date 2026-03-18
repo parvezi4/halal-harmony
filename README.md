@@ -244,8 +244,10 @@ If your local database was created before moderator support was added, run `npx 
 | Email               | Password       | Role    | Notes                             |
 | ------------------- | -------------- | ------- | --------------------------------- |
 | `admin@example.com` | `Password123!` | `SUPERADMIN` | Protected — cannot be deleted; can create/delete admins and moderators; not gender-scoped |
-| `ops.admin@example.com` | `Password123!` | `ADMIN` | Full admin privileges; deletable by superadmin; moderation queues scoped to assigned staff gender |
-| `moderator@example.com` | `Password123!` | `MODERATOR` | Access based on capability toggles; moderation queues scoped to assigned staff gender |
+| `ops.male@example.com` | `Password123!` | `ADMIN` | Male-scoped admin test account; deletable by superadmin |
+| `ops.female@example.com` | `Password123!` | `ADMIN` | Female-scoped admin test account; deletable by superadmin |
+| `moderator.male@example.com` | `Password123!` | `MODERATOR` | Male-scoped moderator test account; access still depends on capability toggles |
+| `moderator.female@example.com` | `Password123!` | `MODERATOR` | Female-scoped moderator test account; access still depends on capability toggles |
 
 - Regular members must use `/auth/login`.
 - Admins and moderators must use `/admin/login`.
@@ -253,6 +255,7 @@ If your local database was created before moderator support was added, run `npx 
 - `AdminAccount` and `MemberAccount` are separate DB tables — member credentials do not work in the admin portal, and vice versa.
 - ADMIN and MODERATOR accounts are assigned a staff gender (MALE/FEMALE) used to scope moderation list views.
 - SUPERADMIN remains unscoped and can review both male and female queues.
+- The seeded staff matrix now includes all four combinations for manual testing: male admin, female admin, male moderator, and female moderator.
 
 **Onboarding Testing:**
 

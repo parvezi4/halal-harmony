@@ -148,6 +148,78 @@ export async function createPrivilegedUser(
   }
 }
 
+export async function updatePrivilegedUserGender(
+  targetUserId: string,
+  gender: Gender
+): Promise<ActionResult> {
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MANAGE_MODERATOR_PERMISSIONS);
+
+  if (!access.authorized || !access.userId || access.role !== 'SUPERADMIN') {
+    return { success: false, errors: { general: 'Only superadmin can update staff gender' } };
+  }
+
+  if (!targetUserId || !gender) {
+    return { success: false, errors: { general: 'User and gender are required' } };
+  }
+
+  const actorId = access.userId;
+
+  try {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        adminAccount: {
+          select: {
+            id: true,
+            gender: true,
+          },
+        },
+      },
+    });
+
+    if (!targetUser || !targetUser.adminAccount) {
+      return { success: false, errors: { general: 'Privileged user not found' } };
+    }
+
+    if (targetUser.role === 'SUPERADMIN') {
+      return { success: false, errors: { general: 'Superadmin gender is not managed here' } };
+    }
+
+    if (targetUser.adminAccount.gender === gender) {
+      return { success: true, message: 'Staff gender already set' };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.adminAccount.update({
+        where: { userId: targetUserId },
+        data: { gender },
+      });
+
+      await tx.moderationAuditLog.create({
+        data: {
+          actorId,
+          action: 'PRIVILEGED_USER_GENDER_UPDATED',
+          targetType: 'User',
+          targetId: targetUserId,
+          metadata: {
+            email: targetUser.email,
+            role: targetUser.role,
+            gender,
+          } as Prisma.InputJsonValue,
+        },
+      });
+    });
+
+    return { success: true, message: `${targetUser.role} gender updated to ${gender}` };
+  } catch (error) {
+    console.error('Failed to update privileged user gender:', error);
+    return { success: false, errors: { general: 'Failed to update staff gender' } };
+  }
+}
+
 export async function deletePrivilegedUser(targetUserId: string): Promise<ActionResult> {
   const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MANAGE_MODERATOR_PERMISSIONS);
 

@@ -90,8 +90,10 @@ npm run dev
 | Email | Password | Role |
 |-------|----------|------|
 | `admin@example.com` | `Password123!` | SUPERADMIN (protected — cannot be deleted) |
-| `ops.admin@example.com` | `Password123!` | ADMIN (deletable by superadmin) |
-| `moderator@example.com` | `Password123!` | MODERATOR (permissions configurable) |
+| `ops.male@example.com` | `Password123!` | ADMIN (male-scoped moderation; deletable by superadmin) |
+| `ops.female@example.com` | `Password123!` | ADMIN (female-scoped moderation; deletable by superadmin) |
+| `moderator.male@example.com` | `Password123!` | MODERATOR (male-scoped moderation; permissions configurable) |
+| `moderator.female@example.com` | `Password123!` | MODERATOR (female-scoped moderation; permissions configurable) |
 
 > ⚠️ Regular members use `/auth/login`. Admins/moderators use `/admin/login`. Using the wrong portal blocks login and shows a corrective message.
 
@@ -102,18 +104,21 @@ npm run dev
 ### 0. Gender-Scoped Moderation (new)
 
 - [ ] Login as `admin@example.com` (SUPERADMIN) and confirm message/photo/profile queues can show both male and female targets.
-- [ ] Login as `ops.admin@example.com` (ADMIN) and confirm all three moderation queues only show assigned staff gender targets.
-- [ ] Login as `moderator@example.com` (MODERATOR) and confirm all three moderation queues only show assigned staff gender targets.
+- [ ] Login as `ops.male@example.com` and `ops.female@example.com` (ADMIN) and confirm all three moderation queues only show assigned staff gender targets.
+- [ ] Login as `moderator.male@example.com` and `moderator.female@example.com` (MODERATOR) and confirm all three moderation queues only show assigned staff gender targets.
 - [ ] In `/admin/moderation/settings`, create a privileged user and confirm gender is required and displayed in the table.
+- [ ] In `/admin/moderation/settings`, change an existing ADMIN or MODERATOR gender from the table and confirm only SUPERADMIN can do it.
 - [ ] Confirm SUPERADMIN behavior remains unscoped after the above checks.
 
 ### 1. Admin Login & Access Control
 
 - [ ] Go to `/admin/login` → login as `admin@example.com` (SUPERADMIN) → lands on `/admin`
-- [ ] Go to `/admin/login` → login as `ops.admin@example.com` (ADMIN) → lands on `/admin`
+- [ ] Go to `/admin/login` → login as `ops.male@example.com` (ADMIN) → lands on `/admin`
+- [ ] Go to `/admin/login` → login as `ops.female@example.com` (ADMIN) → lands on `/admin`
 - [ ] Go to `/auth/login` → try `admin@example.com` → blocked with "use /admin/login" guidance
-- [ ] Go to `/admin/login` → login as `moderator@example.com` → lands on `/admin`
-- [ ] Go to `/auth/login` → try `moderator@example.com` → blocked with "use /admin/login" guidance
+- [ ] Go to `/admin/login` → login as `moderator.male@example.com` → lands on `/admin`
+- [ ] Go to `/admin/login` → login as `moderator.female@example.com` → lands on `/admin`
+- [ ] Go to `/auth/login` → try `moderator.male@example.com` → blocked with "use /admin/login" guidance
 - [ ] Logged in as moderator, navigate to `/admin/audit-log` → redirected to `/admin/moderation`
 - [ ] Logged in as moderator, navigate to `/admin/moderation/settings` → redirected to `/admin/moderation`
 - [ ] Logout from admin shell → redirected to `/admin/login`
@@ -283,7 +288,7 @@ For full payment QA details and test cards, follow `docs/MANUAL_QA_PAYMENTS.md`.
 
 > URL: `/admin/members`
 
-- [ ] Paginated list auto-loads (13 users total after seed)
+- [ ] Paginated list auto-loads (16 users total after seed)
 - [ ] Prev / Next pagination works (default page size 10)
 - [ ] Filter by role (ADMIN / MODERATOR / MEMBER) works
 - [ ] Filter by profile status (PENDING_REVIEW / APPROVED / SUSPENDED) works
@@ -298,7 +303,7 @@ For full payment QA details and test cards, follow `docs/MANUAL_QA_PAYMENTS.md`.
 
 > URL: `/admin/audit-log`
 
-- [ ] Loads for `admin@example.com`; redirected to `/admin/moderation` for moderator
+- [ ] Loads for `admin@example.com`; redirected to `/admin/moderation` for moderator accounts
 - [ ] Initial page auto-loads latest 10 entries without pressing Apply Filters
 - [ ] After running actions in tests 4–9 above, corresponding entries appear:
   - PHOTO_APPROVED, PHOTO_REJECTED
@@ -329,9 +334,9 @@ For full payment QA details and test cards, follow `docs/MANUAL_QA_PAYMENTS.md`.
 
 #### 12a. SUPERADMIN protection
 
-- [ ] Login as `admin@example.com` (SUPERADMIN) → Settings → Privileged Users table shows 3 rows (superadmin, ops.admin, moderator)
+- [ ] Login as `admin@example.com` (SUPERADMIN) → Settings → Privileged Users table shows 5 rows (superadmin, 2 admins, 2 moderators)
 - [ ] SUPERADMIN row (`admin@example.com`) shows "Protected" label — **no Delete button**
-- [ ] Verify `ops.admin@example.com` and `moderator@example.com` each show a Delete button
+- [ ] Verify the four non-superadmin rows show Delete buttons and editable gender controls
 
 #### 12b. Create a new moderator
 
@@ -346,11 +351,11 @@ For full payment QA details and test cards, follow `docs/MANUAL_QA_PAYMENTS.md`.
 
 #### 12d. ADMIN cannot delete ADMIN
 
-- [ ] Login as `ops.admin@example.com` (ADMIN) → Settings → only moderator rows have Delete button; `admin@example.com` shows Protected; `ops.admin@example.com` (self) has no delete button
+- [ ] Login as `ops.male@example.com` (ADMIN) → Settings → only moderator rows have Delete button; `admin@example.com` shows Protected; `ops.male@example.com` (self) has no delete button; peer admin still has no delete button
 
 #### 12e. Only SUPERADMIN can create ADMIN accounts
 
-- [ ] Login as `ops.admin@example.com` (ADMIN) → Settings → Create form role dropdown shows only MODERATOR (no ADMIN option)
+- [ ] Login as `ops.male@example.com` (ADMIN) → Settings → Create form role dropdown shows only MODERATOR (no ADMIN option)
 - [ ] Login as `admin@example.com` (SUPERADMIN) → Create form role dropdown shows both ADMIN and MODERATOR
 
 ---
@@ -362,7 +367,7 @@ For full payment QA details and test cards, follow `docs/MANUAL_QA_PAYMENTS.md`.
 #### 13a. Disable a capability for the moderator
 
 - [ ] Login as `admin@example.com` → Settings → Moderator Permissions → disable "Moderate Messages" (auto-saves)
-- [ ] Log out; log in as `moderator@example.com`
+- [ ] Log out; log in as `moderator.male@example.com`
 - [ ] **Message Queue card** absent from dashboard (`/admin`)
 - [ ] **Message Queue nav link** absent from sidebar
 - [ ] Navigate directly to `/admin/moderation` → **redirected to `/admin`**

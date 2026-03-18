@@ -7,8 +7,10 @@ const DEFAULT_PASSWORD = 'Password123!';
 const DEFAULT_PHOTO_BYTES = 180_000;
 const PRIVILEGED_ACCOUNT_GENDER_BY_EMAIL: Record<string, 'MALE' | 'FEMALE'> = {
   'admin@example.com': 'MALE',
-  'ops.admin@example.com': 'MALE',
-  'moderator@example.com': 'FEMALE',
+  'ops.male@example.com': 'MALE',
+  'ops.female@example.com': 'FEMALE',
+  'moderator.male@example.com': 'MALE',
+  'moderator.female@example.com': 'FEMALE',
 };
 
 async function main() {
@@ -53,7 +55,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: 'ops.admin@example.com',
+      email: 'ops.male@example.com',
       passwordHash,
       role: 'ADMIN',
       emailVerified: new Date(),
@@ -62,7 +64,25 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: 'moderator@example.com',
+      email: 'ops.female@example.com',
+      passwordHash,
+      role: 'ADMIN',
+      emailVerified: new Date(),
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'moderator.male@example.com',
+      passwordHash,
+      role: 'MODERATOR',
+      emailVerified: new Date(),
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'moderator.female@example.com',
       passwordHash,
       role: 'MODERATOR',
       emailVerified: new Date(),
@@ -765,10 +785,16 @@ async function main() {
     'admin@example.com           | Password123!   | ✅ SUPERADMIN (protected account)'
   );
   console.log(
-    'ops.admin@example.com       | Password123!   | ✅ ADMIN (deletable by superadmin)'
+    'ops.male@example.com        | Password123!   | ✅ ADMIN (male-scoped moderation)'
   );
   console.log(
-    'moderator@example.com       | Password123!   | ✅ MODERATOR (permissions configurable)'
+    'ops.female@example.com      | Password123!   | ✅ ADMIN (female-scoped moderation)'
+  );
+  console.log(
+    'moderator.male@example.com  | Password123!   | ✅ MODERATOR (male-scoped, configurable permissions)'
+  );
+  console.log(
+    'moderator.female@example.com| Password123!   | ✅ MODERATOR (female-scoped, configurable permissions)'
   );
   console.log(
     'ahmed@example.com           | Password123!   | ✅ COMPLETE (Male, married, 2 photos)'

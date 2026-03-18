@@ -7,15 +7,18 @@ import {
   createPrivilegedUser,
   deletePrivilegedUser,
   getPrivilegedUsers,
+  updatePrivilegedUserGender,
   type PrivilegedUserRow,
 } from '@/app/actions/admin/privileged-users';
 
 interface ModerationSettingsClientProps {
   initialPermissions: ModeratorCapabilityState & { updatedAt: string };
+  currentRole: 'SUPERADMIN' | 'ADMIN';
 }
 
 export default function ModerationSettingsClient({
   initialPermissions,
+  currentRole,
 }: ModerationSettingsClientProps) {
   // In MVP, these are hardcoded. In future, they would be persisted to database.
   const [moderationType, setModerationType] = useState<'PATTERN' | 'AI_NLP'>('PATTERN');
@@ -37,6 +40,8 @@ export default function ModerationSettingsClient({
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'ADMIN' | 'MODERATOR'>('MODERATOR');
   const [newUserGender, setNewUserGender] = useState<'MALE' | 'FEMALE'>('MALE');
+  const [savingGenderForUserId, setSavingGenderForUserId] = useState<string | null>(null);
+  const isSuperadmin = currentRole === 'SUPERADMIN';
 
   const loadPrivilegedUsers = async () => {
     setLoadingUsers(true);
@@ -126,6 +131,23 @@ export default function ModerationSettingsClient({
     await loadPrivilegedUsers();
   };
 
+  const handleUpdatePrivilegedUserGender = async (
+    userId: string,
+    gender: 'MALE' | 'FEMALE'
+  ) => {
+    setSavingGenderForUserId(userId);
+    const result = await updatePrivilegedUserGender(userId, gender);
+    setSavingGenderForUserId(null);
+
+    if (!result.success) {
+      window.alert(result.errors?.general || 'Failed to update gender');
+      await loadPrivilegedUsers();
+      return;
+    }
+
+    await loadPrivilegedUsers();
+  };
+
   return (
     <div className="space-y-6">
       <header className="border-b border-slate-800 pb-4">
@@ -152,7 +174,7 @@ export default function ModerationSettingsClient({
             <p className="mt-1 text-xs text-slate-400">
               Superadmin/admin can create moderators. Only superadmin can create additional admins.
               Superadmin account is protected and cannot be deleted. ADMIN and MODERATOR
-              moderation queues are gender-scoped.
+              moderation queues are gender-scoped. Superadmin can reassign staff gender here.
             </p>
           </div>
         </div>
@@ -178,7 +200,7 @@ export default function ModerationSettingsClient({
             className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
           >
             <option value="MODERATOR">MODERATOR</option>
-            <option value="ADMIN">ADMIN</option>
+            {isSuperadmin ? <option value="ADMIN">ADMIN</option> : null}
           </select>
           <select
             value={newUserGender}
@@ -228,7 +250,26 @@ export default function ModerationSettingsClient({
                   <tr key={user.id} className="border-b border-slate-800/70">
                     <td className="px-3 py-2 text-slate-200">{user.email}</td>
                     <td className="px-3 py-2 text-slate-300">{user.role}</td>
-                    <td className="px-3 py-2 text-slate-300">{user.gender}</td>
+                    <td className="px-3 py-2 text-slate-300">
+                      {user.role === 'SUPERADMIN' || !isSuperadmin ? (
+                        user.gender
+                      ) : (
+                        <select
+                          value={user.gender}
+                          disabled={savingGenderForUserId === user.id}
+                          onChange={(e) =>
+                            void handleUpdatePrivilegedUserGender(
+                              user.id,
+                              e.target.value as 'MALE' | 'FEMALE'
+                            )
+                          }
+                          className="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100"
+                        >
+                          <option value="MALE">MALE</option>
+                          <option value="FEMALE">FEMALE</option>
+                        </select>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-slate-400">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
