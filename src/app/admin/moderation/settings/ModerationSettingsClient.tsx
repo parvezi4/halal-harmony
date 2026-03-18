@@ -36,6 +36,7 @@ export default function ModerationSettingsClient({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'ADMIN' | 'MODERATOR'>('MODERATOR');
+  const [newUserGender, setNewUserGender] = useState<'MALE' | 'FEMALE'>('MALE');
 
   const loadPrivilegedUsers = async () => {
     setLoadingUsers(true);
@@ -90,7 +91,12 @@ export default function ModerationSettingsClient({
         });
 
   const handleCreatePrivilegedUser = async () => {
-    const result = await createPrivilegedUser(newUserEmail.trim(), newUserPassword, newUserRole);
+    const result = await createPrivilegedUser(
+      newUserEmail.trim(),
+      newUserPassword,
+      newUserRole,
+      newUserGender
+    );
 
     if (!result.success) {
       window.alert(result.errors?.general || 'Failed to create account');
@@ -100,6 +106,7 @@ export default function ModerationSettingsClient({
     setNewUserEmail('');
     setNewUserPassword('');
     setNewUserRole('MODERATOR');
+    setNewUserGender('MALE');
     window.alert(result.message || 'Account created');
     await loadPrivilegedUsers();
   };
@@ -144,12 +151,13 @@ export default function ModerationSettingsClient({
             <h2 className="text-lg font-semibold text-slate-50">Privileged Users</h2>
             <p className="mt-1 text-xs text-slate-400">
               Superadmin/admin can create moderators. Only superadmin can create additional admins.
-              Superadmin account is protected and cannot be deleted.
+              Superadmin account is protected and cannot be deleted. ADMIN and MODERATOR
+              moderation queues are gender-scoped.
             </p>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 rounded-lg border border-slate-700 bg-slate-950/60 p-4 sm:grid-cols-4">
+        <div className="mt-4 grid gap-3 rounded-lg border border-slate-700 bg-slate-950/60 p-4 sm:grid-cols-5">
           <input
             type="email"
             value={newUserEmail}
@@ -172,6 +180,14 @@ export default function ModerationSettingsClient({
             <option value="MODERATOR">MODERATOR</option>
             <option value="ADMIN">ADMIN</option>
           </select>
+          <select
+            value={newUserGender}
+            onChange={(e) => setNewUserGender(e.target.value as 'MALE' | 'FEMALE')}
+            className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          >
+            <option value="MALE">MALE</option>
+            <option value="FEMALE">FEMALE</option>
+          </select>
         </div>
 
         <div className="mt-3 flex justify-end">
@@ -189,6 +205,7 @@ export default function ModerationSettingsClient({
               <tr>
                 <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Email</th>
                 <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Role</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Gender</th>
                 <th className="px-3 py-2 text-left text-xs font-semibold text-slate-300">Created</th>
                 <th className="px-3 py-2 text-right text-xs font-semibold text-slate-300">Action</th>
               </tr>
@@ -196,13 +213,13 @@ export default function ModerationSettingsClient({
             <tbody>
               {loadingUsers ? (
                 <tr>
-                  <td className="px-3 py-3 text-slate-400" colSpan={4}>
+                  <td className="px-3 py-3 text-slate-400" colSpan={5}>
                     Loading users...
                   </td>
                 </tr>
               ) : privilegedUsers.length === 0 ? (
                 <tr>
-                  <td className="px-3 py-3 text-slate-400" colSpan={4}>
+                  <td className="px-3 py-3 text-slate-400" colSpan={5}>
                     No privileged users found.
                   </td>
                 </tr>
@@ -211,6 +228,7 @@ export default function ModerationSettingsClient({
                   <tr key={user.id} className="border-b border-slate-800/70">
                     <td className="px-3 py-2 text-slate-200">{user.email}</td>
                     <td className="px-3 py-2 text-slate-300">{user.role}</td>
+                    <td className="px-3 py-2 text-slate-300">{user.gender}</td>
                     <td className="px-3 py-2 text-slate-400">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>

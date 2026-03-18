@@ -2,6 +2,7 @@
 
 import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
+import type { Gender } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrModerator } from '@/lib/admin/access';
 import { ADMIN_CAPABILITIES } from '@/lib/admin/capabilities';
@@ -16,6 +17,7 @@ export interface PrivilegedUserRow {
   id: string;
   email: string;
   role: 'SUPERADMIN' | 'ADMIN' | 'MODERATOR';
+  gender: 'MALE' | 'FEMALE';
   createdAt: string;
 }
 
@@ -41,6 +43,11 @@ export async function getPrivilegedUsers(): Promise<{
         email: true,
         role: true,
         createdAt: true,
+        adminAccount: {
+          select: {
+            gender: true,
+          },
+        },
       },
       orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
     });
@@ -51,6 +58,7 @@ export async function getPrivilegedUsers(): Promise<{
         id: user.id,
         email: user.email,
         role: user.role as 'SUPERADMIN' | 'ADMIN' | 'MODERATOR',
+        gender: user.adminAccount?.gender || 'MALE',
         createdAt: user.createdAt.toISOString(),
       })),
     };
@@ -63,7 +71,8 @@ export async function getPrivilegedUsers(): Promise<{
 export async function createPrivilegedUser(
   email: string,
   password: string,
-  role: 'ADMIN' | 'MODERATOR'
+  role: 'ADMIN' | 'MODERATOR',
+  gender: Gender
 ): Promise<ActionResult> {
   const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MANAGE_MODERATOR_PERMISSIONS);
 
@@ -71,10 +80,10 @@ export async function createPrivilegedUser(
     return { success: false, errors: { general: 'Not authorized' } };
   }
 
-  if (!email || !password || password.length < 8) {
+  if (!email || !password || password.length < 8 || !gender) {
     return {
       success: false,
-      errors: { general: 'Email and password (minimum 8 characters) are required' },
+      errors: { general: 'Email, password (minimum 8 characters), and gender are required' },
     };
   }
 
@@ -111,6 +120,7 @@ export async function createPrivilegedUser(
             create: {
               email,
               passwordHash,
+              gender,
             },
           },
         },
@@ -125,6 +135,7 @@ export async function createPrivilegedUser(
           metadata: {
             email,
             role,
+            gender,
           } as Prisma.InputJsonValue,
         },
       });
