@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { verifyAdminOrModerator } from '@/lib/admin/access';
+import { resolveModerationScopeGender, verifyAdminOrModerator } from '@/lib/admin/access';
 import { ADMIN_CAPABILITIES } from '@/lib/admin/capabilities';
 import { Prisma } from '@prisma/client';
 
@@ -53,9 +53,9 @@ export async function getPendingProfiles(filters?: {
   page?: number;
   limit?: number;
 }): Promise<PaginatedProfilesResponse> {
-  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.VERIFY_PROFILES);
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.VERIFY_PROFILES);
 
-  if (!authorized) {
+  if (!access.authorized) {
     return {
       success: false,
       errors: { general: 'Not authorized to view profiles' },
@@ -76,6 +76,11 @@ export async function getPendingProfiles(filters?: {
     const where: Prisma.ProfileWhereInput = {
       status,
     };
+    const scopeGender = resolveModerationScopeGender(access);
+
+    if (scopeGender) {
+      where.gender = scopeGender;
+    }
 
     if (riskLevel) {
       where.riskLabel = riskLevel;

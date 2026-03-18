@@ -2,16 +2,16 @@
 
 import { prisma } from '@/lib/prisma';
 import { filterContent } from '@/lib/moderation/contentFilter';
-import { verifyAdminOrModerator } from '@/lib/admin/access';
+import { resolveModerationScopeGender, verifyAdminOrModerator } from '@/lib/admin/access';
 import { ADMIN_CAPABILITIES } from '@/lib/admin/capabilities';
 
 /**
  * Get all pending messages for admin review
  */
 export async function getPendingMessages() {
-  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.MODERATE_MESSAGES);
 
-  if (!authorized) {
+  if (!access.authorized) {
     return {
       success: false,
       errors: { general: 'Not authorized' },
@@ -19,9 +19,20 @@ export async function getPendingMessages() {
   }
 
   try {
+    const scopeGender = resolveModerationScopeGender(access);
+
     const pendingMessages = await prisma.message.findMany({
       where: {
         moderationStatus: 'PENDING',
+        ...(scopeGender
+          ? {
+              sender: {
+                profile: {
+                  gender: scopeGender,
+                },
+              },
+            }
+          : {}),
       },
       orderBy: { createdAt: 'asc' }, // FIFO - oldest first
       include: {

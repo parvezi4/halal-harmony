@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { verifyAdminOrModerator } from '@/lib/admin/access';
+import { resolveModerationScopeGender, verifyAdminOrModerator } from '@/lib/admin/access';
 import { ADMIN_CAPABILITIES } from '@/lib/admin/capabilities';
 import { Prisma } from '@prisma/client';
 
@@ -48,9 +48,9 @@ export async function getPendingPhotos(filters?: {
   page?: number;
   limit?: number;
 }): Promise<PaginatedPhotosResponse> {
-  const { authorized } = await verifyAdminOrModerator(ADMIN_CAPABILITIES.VERIFY_PHOTOS);
+  const access = await verifyAdminOrModerator(ADMIN_CAPABILITIES.VERIFY_PHOTOS);
 
-  if (!authorized) {
+  if (!access.authorized) {
     return {
       success: false,
       errors: { general: 'Not authorized to view photos' },
@@ -69,6 +69,8 @@ export async function getPendingPhotos(filters?: {
     } = filters || {};
 
     const where: Prisma.PhotoWhereInput = {};
+    const scopeGender = resolveModerationScopeGender(access);
+    const profileWhere: Prisma.ProfileWhereInput = {};
 
     if (status === 'PENDING') {
       where.isApproved = false;
@@ -76,20 +78,24 @@ export async function getPendingPhotos(filters?: {
       where.isApproved = true;
     }
 
-    if (profileRiskLevel || search) {
-      where.profile = {};
+    if (scopeGender) {
+      profileWhere.gender = scopeGender;
+    }
 
-      if (profileRiskLevel) {
-        where.profile.riskLabel = profileRiskLevel;
-      }
+    if (profileRiskLevel) {
+      profileWhere.riskLabel = profileRiskLevel;
+    }
 
-      if (search) {
-        where.profile.OR = [
-          { user: { email: { contains: search, mode: 'insensitive' } } },
-          { alias: { contains: search, mode: 'insensitive' } },
-          { fullName: { contains: search, mode: 'insensitive' } },
-        ];
-      }
+    if (search) {
+      profileWhere.OR = [
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+        { alias: { contains: search, mode: 'insensitive' } },
+        { fullName: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (Object.keys(profileWhere).length > 0) {
+      where.profile = profileWhere;
     }
 
     const total = await prisma.photo.count({ where });
