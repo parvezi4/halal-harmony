@@ -6,6 +6,7 @@ declare module "next-auth" {
       id?: string;
       role?: string;
       accountType?: "admin" | "member";
+      gender?: string;
     };
   }
 
@@ -13,6 +14,7 @@ declare module "next-auth" {
     id: string;
     role?: string;
     accountType?: "admin" | "member";
+    gender?: string;
   }
 }
 
@@ -21,6 +23,7 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: string;
     accountType?: "admin" | "member";
+    gender?: string;
   }
 }
 

@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import type { Gender } from '@prisma/client';
 import {
   capabilityAllowedByConfig,
   type AdminCapability,
@@ -11,6 +12,19 @@ interface AccessResult {
   authorized: boolean;
   userId: string | null;
   role: 'SUPERADMIN' | 'ADMIN' | 'MODERATOR' | 'MEMBER' | null;
+  staffGender: Gender | null;
+}
+
+export function resolveModerationScopeGender(access: Pick<AccessResult, 'role' | 'staffGender'>) {
+  if (access.role === 'SUPERADMIN') {
+    return null;
+  }
+
+  if (access.role === 'ADMIN' || access.role === 'MODERATOR') {
+    return access.staffGender;
+  }
+
+  return null;
 }
 
 export interface AdminFeatureAccess {
@@ -143,33 +157,56 @@ export async function verifyAdminOrModerator(
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return { authorized: false, userId: null, role: null };
+    return { authorized: false, userId: null, role: null, staffGender: null };
   }
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true },
+    select: {
+      role: true,
+      adminAccount: {
+        select: {
+          gender: true,
+        },
+      },
+    },
   });
 
   if (!user) {
-    return { authorized: false, userId: null, role: null };
+    return { authorized: false, userId: null, role: null, staffGender: null };
   }
 
+  const staffGender = user.adminAccount?.gender ?? null;
+
   if (user.role === 'SUPERADMIN') {
-    return { authorized: true, userId: session.user.id, role: 'SUPERADMIN' };
+    return { authorized: true, userId: session.user.id, role: 'SUPERADMIN', staffGender };
   }
 
   if (user.role === 'ADMIN') {
-    return { authorized: true, userId: session.user.id, role: 'ADMIN' };
+    return { authorized: Boolean(staffGender), userId: session.user.id, role: 'ADMIN', staffGender };
   }
 
   if (user.role !== 'MODERATOR') {
-    return { authorized: false, userId: session.user.id, role: 'MEMBER' };
+    return { authorized: false, userId: session.user.id, role: 'MEMBER', staffGender: null };
   }
 
   const moderatorConfig = await getModeratorCapabilityState();
   if (!moderatorConfig) {
-    return { authorized: false, userId: session.user.id, role: 'MODERATOR' };
+    return {
+      authorized: false,
+      userId: session.user.id,
+      role: 'MODERATOR',
+      staffGender,
+    };
+  }
+
+  if (!staffGender) {
+    return {
+      authorized: false,
+      userId: session.user.id,
+      role: 'MODERATOR',
+      staffGender: null,
+    };
   }
 
   if (!capability) {
@@ -177,6 +214,7 @@ export async function verifyAdminOrModerator(
       authorized: anyModeratorCapabilityEnabled(moderatorConfig),
       userId: session.user.id,
       role: 'MODERATOR',
+      staffGender,
     };
   }
 
@@ -184,5 +222,6 @@ export async function verifyAdminOrModerator(
     authorized: capabilityAllowedByConfig(capability, moderatorConfig),
     userId: session.user.id,
     role: 'MODERATOR',
+    staffGender,
   };
 }

@@ -78,6 +78,7 @@ export const authOptions = {
             email: account.user.email,
             role: account.user.role,
             accountType: 'admin' as const,
+            gender: account.gender,
           };
         }
 
@@ -122,12 +123,18 @@ export const authOptions = {
       user,
     }: {
       token: JWT;
-      user?: { id: string; role?: string; accountType?: 'admin' | 'member' } | null;
+      user?: {
+        id: string;
+        role?: string;
+        accountType?: 'admin' | 'member';
+        gender?: string;
+      } | null;
     }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.accountType = user.accountType;
+        token.gender = user.gender;
       }
       return token;
     },
@@ -136,6 +143,7 @@ export const authOptions = {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.accountType = token.accountType as 'admin' | 'member' | undefined;
+        session.user.gender = token.gender;
 
         if (token.accountType === 'member') {
           // Gender is only relevant in member flows.
