@@ -99,6 +99,14 @@ npm run dev
 
 ## Manual Test Checklist
 
+### 0. Gender-Scoped Moderation (new)
+
+- [ ] Login as `admin@example.com` (SUPERADMIN) and confirm message/photo/profile queues can show both male and female targets.
+- [ ] Login as `ops.admin@example.com` (ADMIN) and confirm all three moderation queues only show assigned staff gender targets.
+- [ ] Login as `moderator@example.com` (MODERATOR) and confirm all three moderation queues only show assigned staff gender targets.
+- [ ] In `/admin/moderation/settings`, create a privileged user and confirm gender is required and displayed in the table.
+- [ ] Confirm SUPERADMIN behavior remains unscoped after the above checks.
+
 ### 1. Admin Login & Access Control
 
 - [ ] Go to `/admin/login` → login as `admin@example.com` (SUPERADMIN) → lands on `/admin`

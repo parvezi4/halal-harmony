@@ -243,14 +243,16 @@ If your local database was created before moderator support was added, run `npx 
 
 | Email               | Password       | Role    | Notes                             |
 | ------------------- | -------------- | ------- | --------------------------------- |
-| `admin@example.com` | `Password123!` | `SUPERADMIN` | Protected — cannot be deleted; can create/delete admins and moderators |
-| `ops.admin@example.com` | `Password123!` | `ADMIN` | Full admin privileges; deletable by superadmin |
-| `moderator@example.com` | `Password123!` | `MODERATOR` | Access based on capability toggles configured in Settings |
+| `admin@example.com` | `Password123!` | `SUPERADMIN` | Protected — cannot be deleted; can create/delete admins and moderators; not gender-scoped |
+| `ops.admin@example.com` | `Password123!` | `ADMIN` | Full admin privileges; deletable by superadmin; moderation queues scoped to assigned staff gender |
+| `moderator@example.com` | `Password123!` | `MODERATOR` | Access based on capability toggles; moderation queues scoped to assigned staff gender |
 
 - Regular members must use `/auth/login`.
 - Admins and moderators must use `/admin/login`.
 - If you use the wrong portal, the app blocks login and tells you which route to use.
 - `AdminAccount` and `MemberAccount` are separate DB tables — member credentials do not work in the admin portal, and vice versa.
+- ADMIN and MODERATOR accounts are assigned a staff gender (MALE/FEMALE) used to scope moderation list views.
+- SUPERADMIN remains unscoped and can review both male and female queues.
 
 **Onboarding Testing:**
 

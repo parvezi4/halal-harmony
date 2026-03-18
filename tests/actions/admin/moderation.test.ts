@@ -36,6 +36,9 @@ jest.mock('@/lib/prisma', () => ({
 jest.mock('@/lib/moderation/contentFilter');
 jest.mock('@/lib/admin/access', () => ({
   verifyAdminOrModerator: jest.fn(),
+  resolveModerationScopeGender: jest.fn((access) =>
+    access.role === 'SUPERADMIN' ? null : (access.staffGender ?? null)
+  ),
 }));
 
 const mockFilterContent = filterContent as jest.Mock;
@@ -63,6 +66,7 @@ describe('Admin Moderation Actions', () => {
         authorized: false,
         userId: null,
         role: null,
+        staffGender: null,
       });
 
       const result = await getPendingMessages();
@@ -76,6 +80,7 @@ describe('Admin Moderation Actions', () => {
         authorized: false,
         userId: 'user123',
         role: 'MEMBER',
+        staffGender: null,
       });
 
       const result = await getPendingMessages();
@@ -88,6 +93,7 @@ describe('Admin Moderation Actions', () => {
         authorized: true,
         userId: 'mod123',
         role: 'MODERATOR',
+        staffGender: 'MALE',
       });
       (prisma.message.findMany as jest.Mock).mockResolvedValue([]);
 
@@ -104,6 +110,7 @@ describe('Admin Moderation Actions', () => {
         authorized: true,
         userId: 'admin123',
         role: 'ADMIN',
+        staffGender: 'MALE',
       });
     });
 
@@ -154,6 +161,37 @@ describe('Admin Moderation Actions', () => {
       expect(result.data?.[0]?.content).toBe('Flagged content');
       expect(result.data?.[0]?.flaggedReason).toBe('Profanity detected');
       expect(result.data?.[0]?.thread.participants).toHaveLength(2);
+      expect(prisma.message.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            moderationStatus: 'PENDING',
+            sender: { profile: { gender: 'MALE' } },
+          }),
+        })
+      );
+    });
+
+    it('should skip gender filter for superadmin', async () => {
+      mockVerifyAdminOrModerator.mockResolvedValue({
+        authorized: true,
+        userId: 'superadmin123',
+        role: 'SUPERADMIN',
+        staffGender: null,
+      });
+      (prisma.message.findMany as jest.Mock).mockResolvedValue([]);
+
+      const result = await getPendingMessages();
+
+      expect(result.success).toBe(true);
+      expect(prisma.message.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            moderationStatus: 'PENDING',
+          }),
+        })
+      );
+      const whereArg = (prisma.message.findMany as jest.Mock).mock.calls[0][0].where;
+      expect(whereArg.sender).toBeUndefined();
     });
   });
 
@@ -163,6 +201,7 @@ describe('Admin Moderation Actions', () => {
         authorized: true,
         userId: 'admin123',
         role: 'ADMIN',
+        staffGender: 'MALE',
       });
     });
 
@@ -295,6 +334,7 @@ describe('Admin Moderation Actions', () => {
         authorized: true,
         userId: 'admin123',
         role: 'ADMIN',
+        staffGender: 'MALE',
       });
     });
 

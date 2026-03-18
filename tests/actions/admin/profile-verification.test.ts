@@ -23,6 +23,9 @@ jest.mock('@/lib/prisma', () => ({
 
 jest.mock('@/lib/admin/access', () => ({
   verifyAdminOrModerator: jest.fn(),
+  resolveModerationScopeGender: jest.fn((access) =>
+    access.role === 'SUPERADMIN' ? null : (access.staffGender ?? null)
+  ),
 }));
 
 const mockVerifyAdminOrModerator = verifyAdminOrModerator as jest.Mock;
@@ -33,7 +36,12 @@ describe('Admin Profile Verification Actions', () => {
   });
 
   it('should return unauthorized for getPendingProfiles without session', async () => {
-    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
+    mockVerifyAdminOrModerator.mockResolvedValue({
+      authorized: false,
+      userId: null,
+      role: null,
+      staffGender: null,
+    });
 
     const result = await getPendingProfiles();
 
@@ -42,7 +50,12 @@ describe('Admin Profile Verification Actions', () => {
   });
 
   it('should return unauthorized for approveProfile without session', async () => {
-    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
+    mockVerifyAdminOrModerator.mockResolvedValue({
+      authorized: false,
+      userId: null,
+      role: null,
+      staffGender: null,
+    });
 
     const result = await approveProfile('profile-1', 'Test approval');
 
@@ -51,7 +64,12 @@ describe('Admin Profile Verification Actions', () => {
   });
 
   it('should reject suspension without reason when authorized', async () => {
-    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: true, userId: 'admin-1', role: 'ADMIN' });
+    mockVerifyAdminOrModerator.mockResolvedValue({
+      authorized: true,
+      userId: 'admin-1',
+      role: 'ADMIN',
+      staffGender: 'MALE',
+    });
 
     const result = await suspendProfile('profile-1', '');
 
@@ -60,7 +78,12 @@ describe('Admin Profile Verification Actions', () => {
   });
 
   it('should return unauthorized for updateProfileRiskLabel without session', async () => {
-    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
+    mockVerifyAdminOrModerator.mockResolvedValue({
+      authorized: false,
+      userId: null,
+      role: null,
+      staffGender: null,
+    });
 
     const result = await updateProfileRiskLabel('profile-1', 'RED', 'Suspicious activity');
 
@@ -69,11 +92,47 @@ describe('Admin Profile Verification Actions', () => {
   });
 
   it('should return unauthorized for getProfileVerificationStats without session', async () => {
-    mockVerifyAdminOrModerator.mockResolvedValue({ authorized: false, userId: null, role: null });
+    mockVerifyAdminOrModerator.mockResolvedValue({
+      authorized: false,
+      userId: null,
+      role: null,
+      staffGender: null,
+    });
 
     const result = await getProfileVerificationStats();
 
     expect(result.success).toBe(false);
     expect(result.errors?.general).toBeDefined();
+  });
+
+  it('should scope pending profiles by staff gender for admin and moderator', async () => {
+    mockVerifyAdminOrModerator.mockResolvedValue({
+      authorized: true,
+      userId: 'mod-1',
+      role: 'MODERATOR',
+      staffGender: 'MALE',
+    });
+
+    const { prisma } = jest.requireMock('@/lib/prisma') as {
+      prisma: {
+        profile: {
+          count: jest.Mock;
+          findMany: jest.Mock;
+        };
+      };
+    };
+
+    prisma.profile.count.mockResolvedValue(0);
+    prisma.profile.findMany.mockResolvedValue([]);
+
+    const result = await getPendingProfiles();
+
+    expect(result.success).toBe(true);
+    expect(prisma.profile.count).toHaveBeenCalledWith({
+      where: {
+        status: 'PENDING_REVIEW',
+        gender: 'MALE',
+      },
+    });
   });
 });

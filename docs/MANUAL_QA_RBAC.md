@@ -206,6 +206,42 @@ Repeat the disable/verify/re-enable cycle for each capability:
 
 ---
 
+## Scenario 10 — Gender-Scoped Moderation Queues
+
+**Goal**: Verify ADMIN and MODERATOR queue visibility is scoped by staff gender, while SUPERADMIN remains global.
+
+### 10a. SUPERADMIN sees both genders
+
+1. Login as `admin@example.com`
+2. Open:
+   - `/admin/moderation`
+   - `/admin/moderation/photos`
+   - `/admin/moderation/profiles`
+3. **Expected**: Male and female records are visible where present in each queue.
+
+### 10b. Male ADMIN/MODERATOR sees male queue items only
+
+1. Login as `ops.admin@example.com` (or another male-scoped staff account)
+2. Open the same three moderation queue pages
+3. **Expected**: Queue rows are restricted to male profile/message/photo targets.
+4. **Expected**: Female targets visible to SUPERADMIN are not shown.
+
+### 10c. Female ADMIN/MODERATOR sees female queue items only
+
+1. Login as `moderator@example.com` (or another female-scoped staff account)
+2. Open the same three moderation queue pages
+3. **Expected**: Queue rows are restricted to female profile/message/photo targets.
+4. **Expected**: Male targets visible to SUPERADMIN are not shown.
+
+### 10d. Privileged user creation requires staff gender
+
+1. Login as `admin@example.com` and go to `/admin/moderation/settings`
+2. In Privileged Users create form, provide email/password/role but do not leave gender ambiguous
+3. **Expected**: Gender selector is present and required for creating ADMIN/MODERATOR accounts.
+4. Create a new privileged user and verify the Gender column shows the assigned value.
+
+---
+
 ## Pass Criteria
 
 All scenarios above should complete without errors. In addition:
