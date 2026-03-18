@@ -45,3 +45,6 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+
+# slide decks
+docs/slides/
