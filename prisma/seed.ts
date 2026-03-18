@@ -5,6 +5,11 @@ const prisma = new PrismaClient();
 
 const DEFAULT_PASSWORD = 'Password123!';
 const DEFAULT_PHOTO_BYTES = 180_000;
+const PRIVILEGED_ACCOUNT_GENDER_BY_EMAIL: Record<string, 'MALE' | 'FEMALE'> = {
+  'admin@example.com': 'MALE',
+  'ops.admin@example.com': 'MALE',
+  'moderator@example.com': 'FEMALE',
+};
 
 async function main() {
   console.log('Seeding database with test users...');
@@ -747,6 +752,7 @@ async function main() {
         userId: user.id,
         email: user.email,
         passwordHash: user.passwordHash,
+        gender: PRIVILEGED_ACCOUNT_GENDER_BY_EMAIL[user.email] ?? 'MALE',
       },
     });
   }

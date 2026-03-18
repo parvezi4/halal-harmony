@@ -137,6 +137,7 @@ model AdminAccount {
   id           String   @id @default(cuid())
   userId       String   @unique
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gender       Gender
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
