@@ -32,6 +32,12 @@ npm install
    - `NEXTAUTH_SECRET` – Generate with: `openssl rand -base64 32`
    - `STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` – From Stripe dashboard
 
+  **Environment Setup (Dev & Staging, single database):**
+
+  - `.env.local` → Local development and Vercel staging (same database instance)
+  - Both environments are non-production
+  - Prisma CLI note: Next.js runtime reads `.env.local`, while Prisma CLI reads `.env`. This repo validates alignment to prevent config drift.
+
 3. Set up the database:
 
    **First time setup:**
@@ -41,11 +47,14 @@ npm install
    npm run prisma:seed      # Populate with mock data
    ```
 
-   **Or if making schema changes:**
+   **If making schema changes:**
 
    ```bash
-   npm run prisma:migrate   # Create and apply migrations
+   npx prisma migrate dev --name <description>  # Create and apply migration
+   npm run prisma:seed                          # Refresh seed data (optional)
    ```
+
+   Then commit `prisma/migrations/` to git. Vercel automatically applies pending migrations on deploy.
 
 4. Run the dev server:
 
@@ -87,10 +96,18 @@ Opens a web UI where you can browse, create, update, and delete records in all t
 
 **Common workflows:**
 
-- **Schema changed?** → `npx prisma db push`
-- **Need fresh test data?** → `npx prisma migrate reset`
-- **Add new test users?** → Edit `prisma/seed.ts` and run `npm run prisma:seed`
-- **Want to explore data?** → `npx prisma studio`
+| Scenario | Command | Notes |
+|----------|---------|-------|
+| **Adding a new field to schema** | `npx prisma migrate dev --name <name>` | Creates migration file |
+| **Updating seed data** | Edit `prisma/seed.ts` + `npm run prisma:seed` | Local only |
+| **Testing the full reset flow** | `npx prisma migrate reset` | Local only (wipes + reapplies all migrations + seeds) |
+| **Deploy schema to staging** | `git push origin main` | Vercel auto-runs `prisma migrate deploy` |
+| **View/edit data** | `npx prisma studio` | Opens web UI for current environment |
+
+**Key Points:**
+- Commit all `prisma/migrations/*.sql` files to git — they version-control your schema
+- Both local and staging use the same Supabase project; schema auto-syncs via git commits
+- Seeding is local-only; edit `prisma/seed.ts` and run `npm run prisma:seed` locally
 
 ### Development in VS Code
 

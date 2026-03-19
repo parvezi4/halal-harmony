@@ -1,6 +1,7 @@
 # Pre-Commit Verification & Manual QA Guide
 
-**Last Updated**: March 13, 2026
+**Last Updated**: March 19, 2026  
+**Environments**: Local Dev & Vercel Staging (both use same database)  
 **Current Test Results**: ✅ 200 tests passing (26 suites)
 
 ---
@@ -43,6 +44,36 @@ Note: totals increase as new payment suites are added. Re-run `npm run test` for
 | 1 | `41e34ab` | Live stats badges on admin dashboard cards |
 | 2 | `7cf291d` | Flagged users inline actions + risk colour coding |
 | 3 | `8737b9b` | Reject + Warn moderation persistence (`ModerationWarning` table) |
+
+---
+
+## Database Changes Verification
+
+**If modifying schema or seeds, verify before committing:**
+
+```bash
+# 1. Create migration locally
+npx prisma migrate dev --name <description>
+
+# 2. Test in dev server
+npm run dev
+# Manually test the feature that depends on schema change
+
+# 3. Verify seed data works (if also updating seeds)
+npm run prisma:seed
+npx prisma studio  # Browse and verify data
+
+# 4. Commit migration files
+git add prisma/migrations/
+git commit -m "Add migration: <description>"
+
+# 5. On push, Vercel auto-applies migration to staging ✅
+```
+
+**Verify staging automatically:**
+- Vercel build logs should show: `✓ Ready in Xs`
+- Check Vercel deployment status for any database migration errors
+- For full guidance, see [docs/DATABASE_MANAGEMENT.md](DATABASE_MANAGEMENT.md)
 
 ---
 

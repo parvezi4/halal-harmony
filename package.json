@@ -22,8 +22,8 @@
     "typecheck": "tsc --noEmit",
     "precommit:staged": "lint-staged",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "prisma db seed",
+    "prisma:migrate": "node scripts/check-prisma-env.mjs && prisma migrate dev",
+    "prisma:seed": "node scripts/check-prisma-env.mjs && prisma db seed",
     "prepare": "husky"
   },
   "dependencies": {
@@ -69,9 +69,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.56.1"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
